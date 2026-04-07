@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PRISONER'S DILEMMA — CLASSIFIED</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0b0f;
+      --surface: rgba(18, 22, 32, 0.72);
+      --border: rgba(0, 255, 195, 0.18);
+      --accent: #00ffc3;
+      --danger: #ff3b5c;
+      --amber: #f5a623;
+      --muted: #8b92a8;
+      --text: #e8eaf0;
+      --font-display: "Syne", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .svg-sprite {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 255, 195, 0.02) 2px,
+          rgba(0, 255, 195, 0.02) 4px
+        ),
+        radial-gradient(ellipse at 20% 0%, rgba(0, 255, 195, 0.06) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding:
+        max(1rem, env(safe-area-inset-top))
+        max(0.75rem, env(safe-area-inset-right))
+        max(1.5rem, env(safe-area-inset-bottom))
+        max(0.75rem, env(safe-area-inset-left));
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .glass {
+      background: var(--surface);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .screen {
+      display: none;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.38s ease, transform 0.38s ease;
+    }
+
+    .screen.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    h1.glitch {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(1.6rem, 4vw, 2.35rem);
+      letter-spacing: 0.04em;
+      margin: 0 0 1.5rem;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(0, 255, 195, 0.35);
+      animation: glitchFlicker 2.4s ease-out forwards;
+    }
+
+    @keyframes glitchFlicker {
+      0% { opacity: 0; filter: blur(4px); transform: skewX(2deg); }
+      8% { opacity: 1; filter: blur(0); transform: skewX(-1deg); }
+      10% { opacity: 0.7; transform: translateX(-2px); }
+      12% { opacity: 1; transform: translateX(0); }
+      45% { opacity: 1; text-shadow: 2px 0 var(--danger), -2px 0 var(--accent); }
+      46% { text-shadow: none; }
+      100% { opacity: 1; filter: none; transform: none; }
+    }
+
+    .sub {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 1rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .strategy-card {
+      cursor: pointer;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      background: rgba(10, 12, 18, 0.6);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+      text-align: left;
+      color: var(--text);
+      font-family: var(--font-mono);
+      -webkit-tap-highlight-color: rgba(0, 255, 195, 0.12);
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+
+    .strategy-card:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .strategy-card:hover {
+      border-color: rgba(0, 255, 195, 0.35);
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.12);
+    }
+
+    .strategy-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 28px rgba(0, 255, 195, 0.28), inset 0 0 20px rgba(0, 255, 195, 0.06);
+    }
+
+    .strategy-card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .strategy-card-avatar {
+      position: relative;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 1.45rem;
+      line-height: 1;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.12), transparent 55%),
+        rgba(0, 0, 0, 0.35);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .strategy-card-thumb-svg {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 125%;
+      height: 125%;
+      max-width: none;
+      display: block;
+      pointer-events: none;
+    }
+
+    .strategy-card-avatar.avatar-nice {
+      border-color: rgba(0, 255, 195, 0.45);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 0 16px rgba(0, 255, 195, 0.15);
+    }
+
+    .strategy-card-avatar.avatar-nasty {
+      border-color: rgba(255, 59, 92, 0.45);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 59, 92, 0.12);
+    }
+
+    .strategy-card-avatar.avatar-random {
+      border-color: rgba(139, 146, 168, 0.5);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 0 12px rgba(139, 146, 168, 0.12);
+    }
+
+    .strategy-card.selected .strategy-card-avatar.avatar-nice {
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.45), 0 0 22px rgba(0, 255, 195, 0.35);
+    }
+
+    .strategy-card-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .strategy-card .name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+    }
+
+    .badge.nice { background: rgba(0, 255, 195, 0.15); color: var(--accent); }
+    .badge.nasty { background: rgba(255, 59, 92, 0.18); color: var(--danger); }
+    .badge.random { background: rgba(139, 146, 168, 0.25); color: var(--muted); }
+
+    .desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .quote-wrap {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.4s ease;
+      margin-top: 0;
+    }
+
+    .strategy-card.selected .quote-wrap {
+      grid-template-rows: 1fr;
+      margin-top: 0.65rem;
+    }
+
+    .quote-inner {
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .quote {
+      font-style: italic;
+      color: var(--accent);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      opacity: 0.9;
+      padding-top: 0.25rem;
+      border-top: 1px solid rgba(0, 255, 195, 0.2);
+      margin: 0;
+    }
+
+    .rounds-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .rounds-row label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 160px;
+      accent-color: var(--accent);
+    }
+
+    .round-val {
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      min-width: 3ch;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 0.9rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+      -webkit-tap-highlight-color: rgba(0, 255, 195, 0.12);
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: rgba(0, 255, 195, 0.45);
+      box-shadow: 0 0 24px rgba(0, 255, 195, 0.2);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      width: 100%;
+      border-color: rgba(0, 255, 195, 0.35);
+      background: linear-gradient(135deg, rgba(0, 255, 195, 0.12), rgba(0, 255, 195, 0.02));
+    }
+
+    .btn-primary:not(:disabled) {
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.15);
+    }
+
+    .btn-primary:not(:disabled):hover {
+      box-shadow: 0 0 36px rgba(0, 255, 195, 0.35);
+    }
+
+    .btn-coop {
+      flex: 1;
+      min-height: 72px;
+      border-color: rgba(0, 255, 195, 0.45);
+      color: var(--accent);
+      background: rgba(0, 255, 195, 0.08);
+      font-size: 1rem;
+    }
+
+    .btn-coop:hover:not(:disabled) {
+      box-shadow: 0 0 32px rgba(0, 255, 195, 0.35);
+    }
+
+    .btn-def {
+      flex: 1;
+      min-height: 72px;
+      border-color: rgba(255, 59, 92, 0.5);
+      color: var(--danger);
+      background: rgba(255, 59, 92, 0.08);
+      font-size: 1rem;
+    }
+
+    .btn-def:hover:not(:disabled) {
+      box-shadow: 0 0 32px rgba(255, 59, 92, 0.3);
+    }
+
+    .play-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 0.5rem 0.5rem 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .play-layout {
+        grid-template-columns: 1fr;
+        padding: 0.35rem max(0.25rem, env(safe-area-inset-right)) 0.85rem max(0.25rem, env(safe-area-inset-left));
+        gap: 0.75rem;
+      }
+
+      .character-portrait-frame {
+        max-width: min(260px, 92vw);
+        max-height: min(320px, 42vh);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      #screen-play {
+        overflow-x: clip;
+      }
+    }
+
+    .character-dossier {
+      position: sticky;
+      top: 0.75rem;
+      padding: 1rem;
+      border-radius: 14px;
+      background: linear-gradient(165deg, rgba(12, 16, 26, 0.95), rgba(6, 8, 14, 0.92));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .character-dossier.dossier-nice {
+      border-color: rgba(0, 255, 195, 0.28);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(0, 255, 195, 0.08);
+    }
+
+    .character-dossier.dossier-nasty {
+      border-color: rgba(255, 59, 92, 0.28);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(255, 59, 92, 0.08);
+    }
+
+    .character-dossier.dossier-random {
+      border-color: rgba(139, 146, 168, 0.35);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(139, 146, 168, 0.1);
+    }
+
+    .dossier-stamp {
+      font-size: 0.58rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      opacity: 0.85;
+    }
+
+    .character-portrait-frame {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 0.5rem 0 0.75rem;
+      aspect-ratio: 4 / 5;
+      background: #05060a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
+      transition: box-shadow 0.35s ease, border-color 0.35s ease;
+    }
+
+    .character-portrait-frame.portrait-pulse-coop {
+      animation: portraitPulseCoop 0.65s ease;
+    }
+
+    .character-portrait-frame.portrait-pulse-def {
+      animation: portraitPulseDef 0.65s ease;
+    }
+
+    @keyframes portraitPulseCoop {
+      0%, 100% { box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), 0 0 0 rgba(0, 255, 195, 0); border-color: rgba(255, 255, 255, 0.12); }
+      40% { box-shadow: inset 0 0 40px rgba(0, 255, 195, 0.15), 0 0 28px rgba(0, 255, 195, 0.45); border-color: rgba(0, 255, 195, 0.55); }
+    }
+
+    @keyframes portraitPulseDef {
+      0%, 100% { box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6), 0 0 0 rgba(255, 59, 92, 0); border-color: rgba(255, 255, 255, 0.12); }
+      40% { box-shadow: inset 0 0 40px rgba(255, 59, 92, 0.12), 0 0 28px rgba(255, 59, 92, 0.45); border-color: rgba(255, 59, 92, 0.55); }
+    }
+
+    .character-portrait-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .portrait-scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0, 255, 195, 0.03) 3px,
+        rgba(0, 255, 195, 0.03) 6px
+      );
+      mix-blend-mode: overlay;
+    }
+
+    .portrait-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+    }
+
+    .dossier-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding-top: 0.35rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .dossier-rng-tag {
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--amber);
+      padding: 0.2rem 0.45rem;
+      border: 1px dashed rgba(245, 166, 35, 0.45);
+      border-radius: 4px;
+      display: none;
+    }
+
+    .character-dossier.dossier-random .dossier-rng-tag {
+      display: inline-block;
+    }
+
+    .play-main {
+      min-width: 0;
+    }
+
+    .play-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      margin-bottom: 0.75rem;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .play-opp-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .opp-avatar {
+      position: relative;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      line-height: 1;
+      overflow: hidden;
+      border: 2px solid rgba(0, 255, 195, 0.4);
+      background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.1), transparent 55%),
+        rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 14px rgba(0, 255, 195, 0.2);
+    }
+
+    .opp-avatar.avatar-nasty {
+      border-color: rgba(255, 59, 92, 0.45);
+      box-shadow: 0 0 14px rgba(255, 59, 92, 0.18);
+    }
+
+    .opp-avatar.avatar-random {
+      border-color: rgba(139, 146, 168, 0.5);
+      box-shadow: 0 0 12px rgba(139, 146, 168, 0.15);
+    }
+
+    .opp-avatar-svg {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 128%;
+      height: 128%;
+      max-width: none;
+      display: block;
+      pointer-events: none;
+    }
+
+    #play-opp-name,
+    .character-dossier .opp-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--accent);
+      line-height: 1.25;
+    }
+
+    .play-progress-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .round-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .progress-outer {
+      width: 100%;
+      max-width: 220px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-outer--full {
+      max-width: 100%;
+    }
+
+    .progress-inner {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), rgba(0, 255, 195, 0.4));
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    @media (max-width: 560px) {
+      .scoreboard { grid-template-columns: 1fr; }
+    }
+
+    .score-block {
+      position: relative;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .score-block h3 {
+      margin: 0 0 0.35rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+    }
+
+    .score-value {
+      font-size: 2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.2s ease;
+    }
+
+    .score-value.pulse {
+      animation: scorePulse 0.45s ease;
+    }
+
+    @keyframes scorePulse {
+      0% { color: var(--accent); transform: scale(1.05); }
+      100% { color: var(--text); transform: scale(1); }
+    }
+
+    .rate-bar-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+
+    .rate-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      margin-top: 0.25rem;
+      overflow: hidden;
+    }
+
+    .rate-bar > span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .rate-bar.opp > span {
+      background: var(--danger);
+    }
+
+    .points-pop {
+      position: absolute;
+      right: 0.5rem;
+      top: 0.35rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      pointer-events: none;
+      animation: floatUp 0.9s ease forwards;
+    }
+
+    .points-pop.pos { color: var(--accent); }
+    .points-pop.neg { color: var(--danger); }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-22px); }
+    }
+
+    .heatmap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 0.75rem 1rem;
+      min-height: 40px;
+      align-items: flex-start;
+    }
+
+    .hm-cell {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      animation: hmIn 0.35s ease;
+    }
+
+    @keyframes hmIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .hm-both-c { background: var(--accent); box-shadow: 0 0 8px rgba(0, 255, 195, 0.4); }
+    .hm-both-d { background: var(--danger); box-shadow: 0 0 8px rgba(255, 59, 92, 0.35); }
+    .hm-mixed { background: var(--amber); box-shadow: 0 0 8px rgba(245, 166, 35, 0.35); }
+
+    .log {
+      max-height: 180px;
+      overflow-y: auto;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.72rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .log-row {
+      padding: 0.25rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .log-row.both-c { color: var(--accent); }
+    .log-row.both-d { color: var(--danger); }
+    .log-row.mixed { color: var(--amber); }
+
+    .actions-row {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .kbd-hint {
+      width: 100%;
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .calc-bar {
+      text-align: center;
+      padding: 0.5rem 1rem 1rem;
+      min-height: 2rem;
+      font-size: 0.85rem;
+      color: var(--amber);
+    }
+
+    .calc-dots span {
+      animation: dotPulse 1.2s ease-in-out infinite;
+      opacity: 0.3;
+    }
+
+    .calc-dots span:nth-child(1) { animation-delay: 0s; }
+    .calc-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .calc-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .opp-reveal {
+      text-align: center;
+      padding: 0 1rem 0.75rem;
+      min-height: 2.5rem;
+    }
+
+    .opp-move {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 1.05rem;
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .opp-move.reveal {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .opp-move.coop { color: var(--accent); }
+    .opp-move.def { color: var(--danger); }
+
+    .end-header {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: var(--accent);
+    }
+
+    .final-scores {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .final-scores .big {
+      font-size: 2.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .winner {
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .winner.win { color: var(--accent); }
+    .winner.lose { color: var(--danger); }
+    .winner.tie { color: var(--amber); }
+
+    .verdict {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 3px solid var(--accent);
+    }
+
+    .verdict .tag {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .analysis {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding: 0 0.25rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(5, 6, 10, 0.82);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-panel {
+      width: min(520px, 100%);
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transform: scale(0.94);
+      opacity: 0;
+      transition: transform 0.32s ease, opacity 0.32s ease;
+    }
+
+    .modal-overlay.open .modal-panel {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .modal-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+    }
+
+    .modal-body {
+      padding: 0.75rem 1rem 1rem;
+      overflow-y: auto;
+    }
+
+    .lb-avatar {
+      position: relative;
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 0.9rem;
+      margin-right: 0.4rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .lb-avatar-svg {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 128%;
+      height: 128%;
+      max-width: none;
+      display: block;
+    }
+
+    .lb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.45rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+    }
+
+    .lb-row.you {
+      background: rgba(0, 255, 195, 0.12);
+      border: 1px solid rgba(0, 255, 195, 0.35);
+    }
+
+    .lb-rank { color: var(--muted); width: 2rem; }
+    .lb-name {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+
+    .lb-pts { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+    #modal-resume .modal-panel {
+      max-width: 400px;
+    }
+
+    .resume-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .resume-actions .btn { flex: 1; min-width: 120px; }
+
+    .screen-inner {
+      padding: 1.25rem 1rem 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .screen-inner {
+        padding:
+          1rem
+          max(0.65rem, env(safe-area-inset-right))
+          1.25rem
+          max(0.65rem, env(safe-area-inset-left));
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: 0.65rem;
+      }
+
+      .sub {
+        letter-spacing: 0.14em;
+        font-size: 0.7rem;
+      }
+
+      .rounds-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .rounds-row input[type="range"] {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .round-val {
+        align-self: flex-end;
+      }
+
+      .glass {
+        border-radius: 10px;
+      }
+
+      .verdict .tag {
+        font-size: clamp(1rem, 4.5vw, 1.1rem);
+      }
+
+      .analysis {
+        font-size: 0.82rem;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+    }
+
+    @media (max-width: 640px) {
+      html {
+        font-size: clamp(13px, 3.4vw, 14px);
+      }
+
+      .character-dossier {
+        position: static;
+        padding: 0.85rem max(0.5rem, env(safe-area-inset-right)) 0.85rem max(0.5rem, env(safe-area-inset-left));
+        border-radius: 12px;
+      }
+
+      .character-portrait-frame {
+        max-width: min(220px, 88vw);
+        max-height: min(260px, 38dvh);
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .dossier-stamp {
+        text-align: center;
+        letter-spacing: 0.2em;
+      }
+
+      .dossier-footer {
+        justify-content: center;
+        text-align: center;
+        flex-wrap: nowrap;
+      }
+
+      .dossier-footer .opp-name {
+        text-align: start;
+      }
+
+      #play-opp-name,
+      .character-dossier .opp-name {
+        font-size: clamp(0.92rem, 3.8vw, 1rem);
+        overflow-wrap: anywhere;
+        line-height: 1.25;
+      }
+
+      .dossier-rng-tag {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        line-height: 1.45;
+        font-size: 0.58rem;
+      }
+
+      .character-dossier.dossier-random .dossier-rng-tag {
+        display: block;
+      }
+
+      .play-main {
+        padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
+      }
+
+      .play-top {
+        padding: 0.55rem 0.6rem;
+      }
+
+      .progress-outer {
+        max-width: none;
+        height: 8px;
+      }
+
+      .scoreboard {
+        gap: 0.65rem;
+        padding: 0.5rem;
+      }
+
+      .score-value {
+        font-size: clamp(1.5rem, 9vw, 2rem);
+      }
+
+      .heatmap {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        padding: 0.65rem 0.75rem;
+        gap: 5px;
+      }
+
+      .hm-cell {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+      }
+
+      .log {
+        max-height: min(28dvh, 200px);
+        font-size: 0.68rem;
+        padding: 0.55rem 0.65rem;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .actions-row {
+        flex-direction: column;
+        gap: 0.65rem;
+        padding: 0.65rem max(0.35rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+      }
+
+      .btn-coop,
+      .btn-def {
+        width: 100%;
+        min-height: 52px;
+        flex: none;
+      }
+
+      .kbd-hint {
+        font-size: 0.62rem;
+        padding: 0 0.25rem 0.35rem;
+      }
+
+      .calc-bar {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .opp-reveal {
+        padding-left: max(0.5rem, env(safe-area-inset-left));
+        padding-right: max(0.5rem, env(safe-area-inset-right));
+      }
+
+      .opp-move {
+        font-size: clamp(0.95rem, 4vw, 1.05rem);
+      }
+
+      .modal-overlay {
+        padding:
+          max(0.5rem, env(safe-area-inset-top))
+          max(0.5rem, env(safe-area-inset-right))
+          max(0.75rem, env(safe-area-inset-bottom))
+          max(0.5rem, env(safe-area-inset-left));
+        align-items: flex-end;
+      }
+
+      .modal-panel {
+        width: 100%;
+        max-height: min(88dvh, 100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1rem);
+        border-radius: 14px 14px 0 0;
+      }
+
+      #modal-resume .modal-panel {
+        border-radius: 14px;
+        align-self: center;
+        max-height: min(80dvh, 100dvh - 2rem);
+      }
+
+      .modal-overlay.open {
+        align-items: center;
+      }
+
+      .modal-overlay#modal-compare.open {
+        align-items: flex-end;
+      }
+
+      .modal-head {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.85rem 1rem;
+      }
+
+      .modal-head h2 {
+        font-size: clamp(0.82rem, 3.5vw, 1.05rem);
+        flex: 1;
+        min-width: 0;
+      }
+
+      .modal-body {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+      }
+
+      .lb-row {
+        padding: 0.5rem 0.4rem;
+        font-size: 0.72rem;
+      }
+
+      .lb-name span:last-child {
+        overflow-wrap: anywhere;
+      }
+
+      .final-scores {
+        gap: 1.25rem;
+      }
+
+      .final-scores .big {
+        font-size: clamp(1.65rem, 10vw, 2.5rem);
+      }
+
+      .winner {
+        font-size: clamp(1.05rem, 4.5vw, 1.25rem);
+        padding: 0 0.25rem;
+      }
+
+      .quote {
+        font-size: 0.78rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      h1.glitch {
+        font-size: 1.35rem;
+        letter-spacing: 0.025em;
+      }
+
+      .strategy-card-avatar {
+        width: 44px;
+        height: 44px;
+      }
+
+      .end-header {
+        font-size: 1.15rem;
+      }
+    }
+
+    @media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
+      .play-layout {
+        grid-template-columns: minmax(96px, 120px) 1fr;
+        gap: 0.5rem;
+        align-items: start;
+      }
+
+      .character-dossier {
+        padding: 0.5rem;
+      }
+
+      .dossier-stamp {
+        font-size: 0.5rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .character-portrait-frame {
+        max-width: none;
+        max-height: min(110px, 28vh);
+        aspect-ratio: 4 / 5;
+        margin: 0;
+      }
+
+      .dossier-footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.25rem;
+        border-top: none;
+        padding-top: 0.25rem;
+      }
+
+      .opp-avatar {
+        width: 32px;
+        height: 32px;
+      }
+
+      #play-opp-name,
+      .character-dossier .opp-name {
+        font-size: 0.85rem;
+      }
+
+      .round-label {
+        font-size: 0.72rem;
+      }
+
+      .dossier-rng-tag {
+        font-size: 0.5rem;
+        line-height: 1.35;
+      }
+
+      .scoreboard {
+        grid-template-columns: 1fr 1fr;
+        padding: 0.45rem;
+        margin-bottom: 0.45rem;
+      }
+
+      .score-value {
+        font-size: 1.35rem;
+      }
+
+      .log {
+        max-height: min(22vh, 120px);
+      }
+
+      .btn-coop,
+      .btn-def {
+        min-height: 48px;
+      }
+
+      .actions-row {
+        flex-direction: row;
+        padding: 0.5rem 0.25rem;
+      }
+
+      .btn-coop,
+      .btn-def {
+        flex: 1;
+        width: auto;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen,
+      .strategy-card,
+      .btn,
+      .character-portrait-frame,
+      .opp-move,
+      .score-value,
+      .modal-panel {
+        transition-duration: 0.01ms !important;
+      }
+
+      .strategy-card:active:not(:disabled) {
+        transform: none;
+      }
+
+      h1.glitch {
+        animation: none;
+        opacity: 1;
+        filter: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="svg-sprite" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="portrait-tft" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path fill="none" stroke="#00ffc3" stroke-width="2.2" d="M22 44 L38 60 L22 76 M74 44 L58 60 L74 76"/>
+        <circle cx="48" cy="60" r="14" fill="none" stroke="#00ffc3" stroke-opacity="0.35"/>
+        <circle cx="40" cy="58" r="4" fill="#00ffc3"/><circle cx="56" cy="58" r="4" fill="#00ffc3"/>
+      </symbol>
+      <symbol id="portrait-tft2" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="36" cy="52" r="16" fill="none" stroke="#00ffc3" stroke-width="2"/><circle cx="60" cy="52" r="16" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <path d="M40 78 Q48 88 56 78" fill="none" stroke="#00ffc3" stroke-width="2" opacity="0.8"/>
+      </symbol>
+      <symbol id="portrait-gtft" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M48 28 C28 48 28 72 48 92 C68 72 68 48 48 28" fill="none" stroke="#00ffc3" stroke-width="2.5"/>
+        <circle cx="48" cy="54" r="3" fill="#f5a623"/>
+      </symbol>
+      <symbol id="portrait-ac" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M48 22 L62 48 L88 52 L68 72 L72 98 L48 84 L24 98 L28 72 L8 52 L34 48 Z" fill="none" stroke="#00ffc3" stroke-width="2" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="portrait-ad" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M30 28 L66 28 L72 92 L24 92 Z" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>
+        <path d="M36 40 L60 84 M60 40 L36 84" stroke="#ff3b5c" stroke-width="2.5"/>
+      </symbol>
+      <symbol id="portrait-friedman" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="48" cy="56" r="28" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <circle cx="40" cy="50" r="4" fill="#ff3b5c"/><circle cx="56" cy="50" r="4" fill="#ff3b5c"/>
+        <path d="M38 68 Q48 74 58 68" fill="none" stroke="#00ffc3"/>
+        <path d="M28 32 L68 88" stroke="#ff3b5c" stroke-width="2" opacity="0.6"/>
+      </symbol>
+      <symbol id="portrait-joss" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M24 30 H72 V90 H24 Z" fill="none" stroke="#ff3b5c" stroke-width="2"/>
+        <path d="M48 30 V90" stroke="#ff3b5c" stroke-width="1.5" opacity="0.5"/>
+        <circle cx="36" cy="54" r="5" fill="#00ffc3" opacity="0.9"/><circle cx="58" cy="62" r="5" fill="#ff3b5c"/>
+      </symbol>
+      <symbol id="portrait-graaskamp" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="48" cy="58" r="36" fill="none" stroke="#ff3b5c" stroke-width="1.5" opacity="0.4"/>
+        <circle cx="48" cy="58" r="24" fill="none" stroke="#ff3b5c" stroke-width="1.5" opacity="0.7"/>
+        <circle cx="48" cy="58" r="10" fill="#ff3b5c"/>
+        <text x="48" y="102" text-anchor="middle" fill="#f5a623" font-size="11" font-family="monospace">R50</text>
+      </symbol>
+      <symbol id="portrait-tester" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M40 28 H56 L54 70 H42 Z" fill="none" stroke="#ff3b5c" stroke-width="2"/>
+        <ellipse cx="48" cy="78" rx="14" ry="8" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <path d="M48 86 V98" stroke="#00ffc3"/>
+      </symbol>
+      <symbol id="portrait-pavlov" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <ellipse cx="48" cy="62" rx="26" ry="30" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <path d="M28 42 L22 22 M68 42 L74 22" stroke="#00ffc3" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="40" cy="58" r="4" fill="#00ffc3"/><circle cx="56" cy="58" r="4" fill="#00ffc3"/>
+        <ellipse cx="48" cy="72" rx="8" ry="5" fill="none" stroke="#00ffc3"/>
+      </symbol>
+      <symbol id="portrait-gradual" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <rect x="22" y="72" width="12" height="28" fill="#00ffc3" opacity="0.5"/><rect x="38" y="56" width="12" height="44" fill="#00ffc3" opacity="0.7"/>
+        <rect x="54" y="40" width="12" height="60" fill="#00ffc3"/><rect x="70" y="64" width="12" height="36" fill="#f5a623" opacity="0.8"/>
+      </symbol>
+      <symbol id="portrait-softmaj" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M12 72 Q28 48 48 60 T84 56" fill="none" stroke="#00ffc3" stroke-width="2.5"/>
+        <path d="M12 88 Q36 68 52 80 T88 72" fill="none" stroke="#00ffc3" stroke-width="1.5" opacity="0.5"/>
+      </symbol>
+      <symbol id="portrait-hardmaj" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M20 92 L40 38 L48 52 L58 32 L76 92 Z" fill="none" stroke="#ff3b5c" stroke-width="2.5" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="portrait-prober" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="42" cy="50" r="18" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>
+        <path d="M56 62 L78 88" stroke="#ff3b5c" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="38" cy="46" r="3" fill="#00ffc3"/>
+      </symbol>
+      <symbol id="portrait-random" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <rect x="24" y="32" width="48" height="48" rx="6" fill="none" stroke="#8b92a8" stroke-width="2"/>
+        <circle cx="36" cy="48" r="3" fill="#f5a623"/><circle cx="52" cy="44" r="3" fill="#00ffc3"/>
+        <circle cx="44" cy="62" r="3" fill="#ff3b5c"/><circle cx="58" cy="58" r="3" fill="#8b92a8"/>
+        <path d="M30 88 H66" stroke="#8b92a8" stroke-dasharray="4 3" opacity="0.6"/>
+      </symbol>
+    </defs>
+  </svg>
+  <div class="wrap">
+    <section id="screen-select" class="screen glass active">
+      <div class="screen-inner">
+        <p class="sub">Declassified simulation // PD-Ω</p>
+        <h1 class="glitch">CHOOSE YOUR OPPONENT</h1>
+        <div id="strategy-cards" class="card-grid"></div>
+        <div class="rounds-row">
+          <label for="rounds-range">Rounds</label>
+          <input type="range" id="rounds-range" min="5" max="200" value="50" />
+          <span class="round-val" id="rounds-val">50</span>
+        </div>
+        <button type="button" id="btn-begin" class="btn btn-primary" disabled>BEGIN INTERROGATION</button>
+      </div>
+    </section>
+
+    <section id="screen-play" class="screen glass">
+      <div class="play-layout">
+        <aside class="character-dossier dossier-nice" id="play-dossier">
+          <div class="dossier-stamp">Subject file // visual ID</div>
+          <div class="character-portrait-frame" id="play-portrait-frame">
+            <svg class="character-portrait-svg" id="play-portrait-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 96 120" role="img" aria-label="Opponent portrait">
+              <use id="play-portrait-use" href="#portrait-tft" xlink:href="#portrait-tft"></use>
+            </svg>
+            <div class="portrait-scanlines"></div>
+            <div class="portrait-vignette"></div>
+          </div>
+          <div class="dossier-footer">
+            <span class="opp-avatar" id="play-opp-avatar" aria-hidden="true"></span>
+            <div>
+              <div class="opp-name" id="play-opp-name">—</div>
+              <div class="round-label" id="play-round-label">Round 0 / 0</div>
+            </div>
+          </div>
+          <span class="dossier-rng-tag" id="play-rng-tag">Chaos agent — fresh coin flip every round (no memory)</span>
+        </aside>
+        <div class="play-main">
+          <div class="play-top">
+            <div class="play-progress-wrap">
+              <div class="progress-outer progress-outer--full"><div class="progress-inner" id="play-progress"></div></div>
+            </div>
+          </div>
+          <div class="scoreboard">
+            <div class="score-block">
+              <h3>You</h3>
+              <div class="score-value" id="score-you">0</div>
+              <div class="points-pop" id="pop-you" style="display:none;"></div>
+              <div class="rate-bar-label" id="rate-you-label">0% cooperative</div>
+              <div class="rate-bar"><span id="rate-you-bar"></span></div>
+            </div>
+            <div class="score-block">
+              <h3>Opponent</h3>
+              <div class="score-value" id="score-opp">0</div>
+              <div class="rate-bar-label" id="rate-opp-label">0% cooperative</div>
+              <div class="rate-bar opp"><span id="rate-opp-bar"></span></div>
+            </div>
+          </div>
+          <div class="heatmap glass" id="heatmap" style="margin:0 0.25rem 0.5rem;border-radius:8px;"></div>
+          <div class="log glass" id="round-log" style="margin:0 0.25rem 0.5rem;border-radius:8px;"></div>
+          <div class="calc-bar" id="calc-indicator" style="display:none;">Opponent calculating <span class="calc-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></div>
+          <div class="opp-reveal" id="opp-reveal-wrap">
+            <span class="opp-move" id="opp-move-el"></span>
+          </div>
+          <div class="actions-row">
+            <button type="button" class="btn btn-coop" id="btn-coop">COOPERATE</button>
+            <button type="button" class="btn btn-def" id="btn-def">DEFECT</button>
+          </div>
+          <p class="kbd-hint">[C] Cooperate &nbsp;&nbsp; [D] Defect</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-end" class="screen glass">
+      <div class="screen-inner">
+        <div class="end-header">INTERROGATION COMPLETE</div>
+        <div class="final-scores">
+          <div>
+            <div class="sub">You</div>
+            <div class="big" id="end-score-you">0</div>
+          </div>
+          <div>
+            <div class="sub">Opponent</div>
+            <div class="big" id="end-score-opp">0</div>
+          </div>
+        </div>
+        <div class="winner" id="end-winner"></div>
+        <div class="verdict glass" style="background:rgba(0,0,0,0.2);">
+          <div class="tag" id="verdict-tag">—</div>
+          <div id="verdict-text" style="font-size:0.88rem;"></div>
+        </div>
+        <p class="analysis" id="match-analysis"></p>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="btn-compare">How would others have played this?</button>
+          <button type="button" class="btn" id="btn-again">PLAY AGAIN</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="modal-compare" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel glass">
+      <div class="modal-head">
+        <h2>Alternate strategies (same opponent moves)</h2>
+        <button type="button" class="btn" id="modal-compare-close" style="padding:0.35rem 0.65rem;">✕</button>
+      </div>
+      <div class="modal-body" id="compare-list"></div>
+    </div>
+  </div>
+
+  <div id="modal-resume" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel glass">
+      <div class="modal-head">
+        <h2>Session found</h2>
+      </div>
+      <div class="modal-body">
+        <p style="margin:0 0 0.5rem;font-size:0.85rem;">A saved match exists in this tab. Resume or discard?</p>
+        <div class="resume-actions">
+          <button type="button" class="btn btn-primary" id="btn-resume">Resume</button>
+          <button type="button" class="btn" id="btn-fresh">Start fresh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "prisonersDilemmaSession";
+
+  function scoreRound(playerMove, opponentMove) {
+    var p = playerMove === "cooperate";
+    var o = opponentMove === "cooperate";
+    if (p && o) return { playerPoints: 3, opponentPoints: 3 };
+    if (!p && o) return { playerPoints: 5, opponentPoints: 0 };
+    if (p && !o) return { playerPoints: 0, opponentPoints: 5 };
+    return { playerPoints: 1, opponentPoints: 1 };
+  }
+
+  function randomDecideFair() {
+    try {
+      if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+        var buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return (buf[0] & 1) === 0 ? "cooperate" : "defect";
+      }
+    } catch (e) {}
+    return Math.random() < 0.5 ? "cooperate" : "defect";
+  }
+
+  function createGradualStrategy() {
+    var phase = "normal";
+    var punishRemaining = 0;
+    var coolRemaining = 0;
+
+    function reset() {
+      phase = "normal";
+      punishRemaining = 0;
+      coolRemaining = 0;
+    }
+
+    function decide(history) {
+      if (history.length === 0) return "cooperate";
+
+      var last = history[history.length - 1];
+      var oppDefects = history.reduce(function (n, h) {
+        return n + (h.opponentMove === "defect" ? 1 : 0);
+      }, 0);
+
+      if (phase === "cooling") {
+        coolRemaining--;
+        if (coolRemaining === 0) phase = "normal";
+        return "cooperate";
+      }
+
+      if (phase === "punishing") {
+        if (punishRemaining > 0) {
+          punishRemaining--;
+          return "defect";
+        }
+        phase = "cooling";
+        coolRemaining = 2;
+        return "cooperate";
+      }
+
+      if (phase === "normal") {
+        if (last.opponentMove === "defect") {
+          phase = "punishing";
+          punishRemaining = Math.max(0, oppDefects - 1);
+          return "defect";
+        }
+        return "cooperate";
+      }
+
+      return "cooperate";
+    }
+
+    return { decide: decide, reset: reset };
+  }
+
+  var gradualInst = createGradualStrategy();
+
+  function testerDecide(history) {
+    var r = history.length + 1;
+    if (r === 1) return "defect";
+    var retaliated = history[0].opponentMove === "defect";
+    if (retaliated) {
+      if (r === 2 || r === 3) return "cooperate";
+      var last = history[history.length - 1];
+      return last.opponentMove === "cooperate" ? "cooperate" : "defect";
+    }
+    return r % 2 === 0 ? "defect" : "cooperate";
+  }
+
+  function pavlovDecide(history) {
+    if (history.length === 0) return "cooperate";
+    var last = history[history.length - 1];
+    var pts = scoreRound(last.playerMove, last.opponentMove).playerPoints;
+    if (pts === 3 || pts === 5) return last.playerMove;
+    return last.playerMove === "cooperate" ? "defect" : "cooperate";
+  }
+
+  function titForTat(history) {
+    if (history.length === 0) return "cooperate";
+    return history[history.length - 1].opponentMove === "cooperate" ? "cooperate" : "defect";
+  }
+
+  var STRATEGIES = [
+    {
+      name: "Tit for Tat",
+      portraitId: "portrait-tft",
+      avatar: "\u2194\ufe0f",
+      badge: "Nice",
+      description: "Cooperate first, then mirror your last move.",
+      quote: '"The first hand I extend is open — not because I am blind, but because every relationship begins as a hypothesis: maybe the world can be gentler than its worst arithmetic. After that, I am only your echo. You write the line; I trace it back in ink. If you choose harm, harm returns; if you relent, relief can bloom again. Reciprocity is not revenge — it is the simplest proof that actions have weight, and that I will not pretend they do not."',
+      decide: function (h) { return titForTat(h); }
+    },
+    {
+      name: "Tit for Two Tats",
+      portraitId: "portrait-tft2",
+      avatar: "\ud83d\udd01",
+      badge: "Nice",
+      description: "Only defects after you defect twice in a row.",
+      quote: '"A single stumble is weather — noise, fatigue, a hand that slipped. I let it pass; the story of us is longer than one harsh syllable. But the second fall in the same direction is no longer accident: it is grammar. Pattern is destiny written small. I will not dam every stream of goodwill, yet I refuse to be the stone that never notices when the river has turned cruel on purpose."',
+      decide: function (h) {
+        if (h.length < 2) return "cooperate";
+        var a = h[h.length - 2].opponentMove;
+        var b = h[h.length - 1].opponentMove;
+        return (a === "defect" && b === "defect") ? "defect" : "cooperate";
+      }
+    },
+    {
+      name: "Generous Tit for Tat",
+      portraitId: "portrait-gtft",
+      avatar: "\ud83d\udc9a",
+      badge: "Nice",
+      description: "Like Tit for Tat, but sometimes forgives a defection.",
+      quote: '"Justice without mercy is only another kind of blindness. I remember the wound — I am not foolish — yet I leave a sliver of light in the verdict: a door left barely open, a coin still spinning in the air. Sometimes the harshest answer is true, and still I soften it, because peace is not built from flawless punishment but from the courage to risk trust one more breath before the chain locks forever."',
+      decide: function (h) {
+        var m = titForTat(h);
+        if (m === "defect" && Math.random() < 0.1) return "cooperate";
+        return m;
+      }
+    },
+    {
+      name: "Always Cooperate",
+      portraitId: "portrait-ac",
+      avatar: "\ud83d\udd4a\ufe0f",
+      badge: "Nice",
+      description: "Always cooperates.",
+      quote: '"I refuse to be the first fracture in the glass. While others debate who should strike, I hold the frame steady — not from purity, but from stubborn hope that a bridge only works if someone is willing to be the foolish one who steps onto it first. If the world punishes that faith, let the indictment fall on the game, not on the hand that tried to heal it by staying open."',
+      decide: function () { return "cooperate"; }
+    },
+    {
+      name: "Always Defect",
+      portraitId: "portrait-ad",
+      avatar: "\ud83d\udde1\ufe0f",
+      badge: "Nasty",
+      description: "Always defects.",
+      quote: '"The romantic lie is that kindness is the default state of the universe; the cold truth is that fear and appetite run silent kitchens. I do not wait for the blade I already feel sharpening in the dark. I name the room what it is — a machine that rewards the early predator — and I refuse to be the meal that smiled while the teeth closed. If paradise exists, it is not here; here, I survive."',
+      decide: function () { return "defect"; }
+    },
+    {
+      name: "Friedman (Grim Trigger)",
+      portraitId: "portrait-friedman",
+      avatar: "\u2620\ufe0f",
+      badge: "Nice",
+      description: "Cooperates until you defect once — then defects forever.",
+      quote: '"I can be tender for a thousand mornings if tenderness is returned; I will oil the hinges of our trust until they shine. But betrayal is not a bruise — it is a crack through the bone. There is no statute of limitations on what I cannot un-see. Once you show me that door, I walk through it alone, and I lock it behind us with a key I melt down. From that hour forward, my heart does not negotiate with ghosts."',
+      decide: function (h) {
+        for (var i = 0; i < h.length; i++) {
+          if (h[i].opponentMove === "defect") return "defect";
+        }
+        return "cooperate";
+      }
+    },
+    {
+      name: "Joss",
+      portraitId: "portrait-joss",
+      avatar: "\ud83c\udfad",
+      badge: "Nasty",
+      description: "Mostly copies your last move; occasionally stabs when mirroring cooperation.",
+      quote: '"Symmetry is a lovely mask — I wear it until the room grows too comfortable. I mirror you because predictability lulls every watchman to sleep; then I let the dice nick the mirror, just enough to remind you that innocence and pattern are not the same sacrament. I am fair often enough to be trusted, and ruthless enough never to be fully known. Call it insurance: the premium is your certainty."',
+      decide: function (h) {
+        var m = titForTat(h);
+        if (m === "cooperate" && Math.random() < 0.1) return "defect";
+        return m;
+      }
+    },
+    {
+      name: "Graaskamp",
+      portraitId: "portrait-graaskamp",
+      avatar: "\ud83c\udfaf",
+      badge: "Nasty",
+      description: "Tit for Tat with a forced probe defection on round 50.",
+      quote: '"I will walk the long corridor of courtesy beside you — mirrors on every wall, each round a polite reflection of the last. Patience is not naivety; it is waiting until the story forgets to guard its lie. Then, on the page where the script demands it, the fiction snaps: one clean fissure, and the shape behind your choices stops pretending to be anything but itself."',
+      decide: function (h) {
+        if (h.length + 1 === 50) return "defect";
+        return titForTat(h);
+      }
+    },
+    {
+      name: "Tester",
+      portraitId: "portrait-tester",
+      avatar: "\ud83e\uddea",
+      badge: "Nasty",
+      description: "Tests you on round one, then adapts ruthlessly or mirrors.",
+      quote: '"Before you speak your philosophy, your body already votes. I offer you a small cruelty dressed as a question — harmless only if you are — and watch whether you flinch into vengeance, freeze into pride, or reach for repair. The reaction is a fingerprint oilier than any confession. After that, I do not guess who you are; I simply follow the map your nerves drew in the first second of contact."',
+      decide: testerDecide
+    },
+    {
+      name: "Pavlov",
+      portraitId: "portrait-pavlov",
+      avatar: "\ud83d\udc15",
+      badge: "Nice",
+      description: "Repeats what worked; changes tactic after a bad score.",
+      quote: '"The world whispers in outcomes, not intentions. I do not worship a strategy; I worship what feeds me — the round that pays in trust, or the bolt that warns me to pivot. When the bell rings sweet, I stay at the lever; when it tastes of ash, I shed that skin and try another. Loyalty to a mistake is the only sin I refuse to commit. I am memory without superstition: reward teaches, pain edits."',
+      decide: pavlovDecide
+    },
+    {
+      name: "Gradual",
+      portraitId: "portrait-gradual",
+      avatar: "\ud83d\udcca",
+      badge: "Nice",
+      description: "Escalates punishment with your defections, then cools off.",
+      quote: '"Harm is not forgotten; it is amortized. I do not explode at the first scratch — I inscribe it in the ledger, then answer in measured coin: a sentence of silence, a season of frost, commensurate with how deep your habits cut. When the account clears, I offer warmth again, not because the past vanished, but because vengeance without exit becomes a second prison. Balance is not kindness; it is the mathematics of dignity."',
+      decide: function (h) { return gradualInst.decide(h); },
+      reset: function () { gradualInst.reset(); }
+    },
+    {
+      name: "Soft Majority",
+      portraitId: "portrait-softmaj",
+      avatar: "\u2601\ufe0f",
+      badge: "Nice",
+      description: "Cooperates if you have cooperated at least half the time.",
+      quote: '"I am a weather vane welded to the temper of the crowd you have already summoned. Half the sky is cooperation? Then I tilt toward dawn; half is storm? I shoulder my coat. I do not pretend to be a prophet who judges souls in a vacuum — I listen to the chorus you helped compose. Be gentle often enough, and the chorus learns a sweeter key; let cruelty spread, and do not feign shock when the echo returns wearing your face."',
+      decide: function (h) {
+        if (h.length === 0) return "cooperate";
+        var co = h.reduce(function (n, x) { return n + (x.opponentMove === "cooperate" ? 1 : 0); }, 0);
+        return co / h.length >= 0.5 ? "cooperate" : "defect";
+      }
+    },
+    {
+      name: "Hard Majority",
+      portraitId: "portrait-hardmaj",
+      avatar: "\ud83d\uddff",
+      badge: "Nasty",
+      description: "Cooperates only if you cooperate more than half the time.",
+      quote: '"Innocent until proven guilty is a courtroom grace I do not extend to the wild. Here, trust is earned like heat — degree by degree — and the thermostat starts cold. Majority is not enough; I demand the margin that cannot be mistaken for luck. Show me not one generous gesture but a leaning tide; until then I keep my borders armed with doubt, because optimism without evidence is how honest people become footnotes."',
+      decide: function (h) {
+        if (h.length === 0) return "defect";
+        var co = h.reduce(function (n, x) { return n + (x.opponentMove === "cooperate" ? 1 : 0); }, 0);
+        return co / h.length > 0.5 ? "cooperate" : "defect";
+      }
+    },
+    {
+      name: "Naive Prober",
+      portraitId: "portrait-prober",
+      avatar: "\ud83d\udd0d",
+      badge: "Nasty",
+      description: "Mostly Tit for Tat with random probing defections.",
+      quote: '"Mostly I walk in your footsteps — not from weakness, but because the path you carve tells me who you are when no one is performing. Yet faith without test rots into dogma; now and then I plant a thorn where you expect petals, and watch whether your course corrects or hardens. The experiment is small; the data is loud. I learn you twice: once by mimicry, once by the tremor of your response to surprise."',
+      decide: function (h) {
+        var m = titForTat(h);
+        if (m === "cooperate" && Math.random() < 0.2) return "defect";
+        return m;
+      }
+    },
+    {
+      name: "Random",
+      portraitId: "portrait-random",
+      strategyKey: "pure_random",
+      avatar: "\ud83c\udfb2",
+      badge: "Random",
+      description: "50/50 each round; ignores history.",
+      quote: '"Narratives are chains: hero, villain, redemption arc. I am the loose thread — motive without biography, consequence without prophecy. Each dawn I flip a coin in a locked room inside my own skull; the past does not vote, the future does not bribe. You may read patterns into chaos and call it my strategy; I call it freedom from the tyranny of being understood. Meet me as I am this second — afterward, I may already be someone else."',
+      decide: function () { return randomDecideFair(); }
+    }
+  ];
+
+  var MATCH_ANALYSIS = {
+    "Tit for Tat": "Against a mirroring opponent, your choices became the whole story — reciprocity ruled the scoreboard.",
+    "Tit for Two Tats": "This opponent forgave noise; long streaks of cooperation were possible if you avoided double-crossing patterns.",
+    "Generous Tit for Tat": "Occasional forgiveness broke punishment spirals — your defections sometimes melted away for free.",
+    "Always Cooperate": "A sitting duck for exploitation, yet it rewarded every cooperative streak you offered.",
+    "Always Defect": "The baseline predator: cooperation from you fed its payoff unless you punished back consistently.",
+    "Friedman (Grim Trigger)": "One breach ended the honeymoon forever — early aggression locked you into mutual destruction.",
+    "Joss": "Slight random nastiness kept you guessing; steady cooperation was sometimes punished by noise.",
+    "Graaskamp": "Mostly fair, with one scheduled knife at round fifty if you lasted that long.",
+    "Tester": "Round one was a trap; your first reply steered the opponent between exploitation and mimicry.",
+    "Pavlov": "Win-stay lose-shift dynamics meant stable cooperation or oscillation — your payoffs trained its habits.",
+    "Gradual": "Punishments scaled with your betrayals and cooled down after — long games rewarded rhythm and repair.",
+    "Soft Majority": "It followed the crowd you built: if you cooperated often, it softened; if not, it turned harsh.",
+    "Hard Majority": "It demanded proof before trust — cold opens and low cooperation kept it defecting.",
+    "Naive Prober": "Mostly reciprocal with random tests — your cooperation sometimes met unprovoked experiments.",
+    "Random": "No narrative, only variance — your score reflected luck as much as intent."
+  };
+
+  var selectedIndex = -1;
+  var currentStrategy = null;
+  var totalRounds = 50;
+  var rounds = [];
+  var playerScore = 0;
+  var oppScore = 0;
+  var roundInProgress = false;
+  var pendingResume = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(function (el) {
+      el.classList.toggle("active", el.id === id);
+    });
+  }
+
+  function buildStrategyCards() {
+    var container = $("strategy-cards");
+    container.innerHTML = "";
+    STRATEGIES.forEach(function (s, i) {
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "strategy-card";
+      card.dataset.index = String(i);
+      var bClass = s.badge === "Nice" ? "nice" : s.badge === "Nasty" ? "nasty" : "random";
+      var avClass = s.badge === "Nice" ? "avatar-nice" : s.badge === "Nasty" ? "avatar-nasty" : "avatar-random";
+      var pid = s.portraitId || "portrait-tft";
+      card.innerHTML =
+        '<div class="strategy-card-head">' +
+        '<span class="strategy-card-avatar ' + avClass + '" aria-hidden="true">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 120" class="strategy-card-thumb-svg" focusable="false">' +
+        '<use href="#' + pid + '"/></svg></span>' +
+        '<div class="strategy-card-main">' +
+        '<div class="name">' + escapeHtml(s.name) + '</div>' +
+        '<span class="badge ' + bClass + '">' + escapeHtml(s.badge) + '</span>' +
+        '<div class="desc">' + escapeHtml(s.description) + '</div>' +
+        "</div></div>" +
+        '<div class="quote-wrap"><div class="quote-inner"><p class="quote">' + escapeHtml(s.quote) + '</p></div></div>';
+      card.addEventListener("click", function () {
+        document.querySelectorAll(".strategy-card").forEach(function (c) { c.classList.remove("selected"); });
+        card.classList.add("selected");
+        selectedIndex = i;
+        $("btn-begin").disabled = false;
+      });
+      container.appendChild(card);
+    });
+  }
+
+  function escapeHtml(t) {
+    var d = document.createElement("div");
+    d.textContent = t;
+    return d.innerHTML;
+  }
+
+  function getSessionObject() {
+    return {
+      strategyName: currentStrategy ? currentStrategy.name : "",
+      totalRounds: totalRounds,
+      rounds: rounds.map(function (r) { return JSON.parse(JSON.stringify(r)); })
+    };
+  }
+
+  function saveSession() {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(getSessionObject()));
+    } catch (e) {}
+  }
+
+  function clearSession() {
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+  }
+
+  function resetGameState() {
+    rounds = [];
+    playerScore = 0;
+    oppScore = 0;
+    roundInProgress = false;
+    gradualInst.reset();
+    if (currentStrategy && currentStrategy.reset) currentStrategy.reset();
+  }
+
+  function syncGradualFromRounds() {
+    gradualInst.reset();
+    if (!currentStrategy || currentStrategy.name !== "Gradual") return;
+    for (var i = 0; i < rounds.length; i++) {
+      var hist = [];
+      for (var j = 0; j < i; j++) {
+        hist.push({
+          playerMove: rounds[j].opponentMove,
+          opponentMove: rounds[j].playerMove
+        });
+      }
+      gradualInst.decide(hist);
+    }
+  }
+
+  function setOpponentPortrait() {
+    var pid = (currentStrategy && currentStrategy.portraitId) ? currentStrategy.portraitId : "portrait-tft";
+    var useEl = $("play-portrait-use");
+    var svgEl = $("play-portrait-svg");
+    if (useEl) {
+      useEl.setAttribute("href", "#" + pid);
+      try {
+        useEl.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + pid);
+      } catch (e) {}
+    }
+    if (svgEl && currentStrategy) {
+      svgEl.setAttribute("aria-label", currentStrategy.name + " dossier portrait");
+    }
+    var dossier = $("play-dossier");
+    if (dossier && currentStrategy) {
+      dossier.className = "character-dossier dossier-" + (currentStrategy.badge === "Nice" ? "nice" : currentStrategy.badge === "Nasty" ? "nasty" : "random");
+    }
+  }
+
+  function initPlayScreen() {
+    var oa = $("play-opp-avatar");
+    oa.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 120" class="opp-avatar-svg" focusable="false"><use href="#' + (currentStrategy.portraitId || "portrait-tft") + '"/></svg>';
+    oa.className = "opp-avatar " + (currentStrategy.badge === "Nice" ? "avatar-nice" : currentStrategy.badge === "Nasty" ? "avatar-nasty" : "avatar-random");
+    setOpponentPortrait();
+    $("play-opp-name").textContent = currentStrategy.name;
+    $("play-round-label").textContent = "Round " + (rounds.length + 1) + " / " + totalRounds;
+    $("play-progress").style.width = ((rounds.length / totalRounds) * 100) + "%";
+    $("score-you").textContent = String(playerScore);
+    $("score-opp").textContent = String(oppScore);
+    updateRates();
+    $("heatmap").innerHTML = "";
+    $("round-log").innerHTML = "";
+    rounds.forEach(function (r, idx) { appendRoundVisual(r, idx + 1); });
+    $("calc-indicator").style.display = "none";
+    $("opp-move-el").textContent = "";
+    $("opp-move-el").className = "opp-move";
+    syncGradualFromRounds();
+    var done = rounds.length >= totalRounds;
+    setPlayButtonsDisabled(done);
+  }
+
+  function updateRates() {
+    var n = rounds.length;
+    var yc = rounds.filter(function (r) { return r.playerMove === "cooperate"; }).length;
+    var oc = rounds.filter(function (r) { return r.opponentMove === "cooperate"; }).length;
+    var yp = n ? Math.round((yc / n) * 100) : 0;
+    var op = n ? Math.round((oc / n) * 100) : 0;
+    $("rate-you-label").textContent = yp + "% cooperative";
+    $("rate-opp-label").textContent = op + "% cooperative";
+    $("rate-you-bar").style.width = yp + "%";
+    $("rate-opp-bar").style.width = op + "%";
+  }
+
+  function heatClass(pm, om) {
+    if (pm === "cooperate" && om === "cooperate") return { hm: "hm-both-c", log: "both-c", label: "Mutual cooperation" };
+    if (pm === "defect" && om === "defect") return { hm: "hm-both-d", log: "both-d", label: "Mutual defection" };
+    return { hm: "hm-mixed", log: "mixed", label: "Mixed" };
+  }
+
+  function appendRoundVisual(r, roundNum) {
+    var hc = heatClass(r.playerMove, r.opponentMove);
+    var cell = document.createElement("span");
+    cell.className = "hm-cell " + hc.hm;
+    cell.title = "Round " + roundNum + ": " + hc.label;
+    $("heatmap").appendChild(cell);
+    var row = document.createElement("div");
+    row.className = "log-row " + hc.log;
+    row.textContent = "Round " + roundNum + " | You: " + r.playerMove + " | Opponent: " + r.opponentMove + " | +" + r.playerPoints + " pts";
+    $("round-log").appendChild(row);
+    $("round-log").scrollTop = $("round-log").scrollHeight;
+  }
+
+  function buildAiHistory() {
+    return rounds.map(function (r) {
+      return { playerMove: r.opponentMove, opponentMove: r.playerMove };
+    });
+  }
+
+  function playRound(playerMove) {
+    if (roundInProgress) return;
+    if (rounds.length >= totalRounds) return;
+
+    roundInProgress = true;
+    setPlayButtonsDisabled(true);
+    $("calc-indicator").style.display = "block";
+    $("opp-move-el").textContent = "";
+    $("opp-move-el").className = "opp-move";
+
+    var delay = 600 + Math.random() * 200;
+
+    setTimeout(function () {
+      var aiHistory = buildAiHistory();
+      var oppMove = currentStrategy.strategyKey === "pure_random"
+        ? randomDecideFair()
+        : currentStrategy.decide(aiHistory);
+
+      var sc = scoreRound(playerMove, oppMove);
+      var rec = {
+        round: rounds.length + 1,
+        playerMove: playerMove,
+        opponentMove: oppMove,
+        playerPoints: sc.playerPoints,
+        opponentPoints: sc.opponentPoints
+      };
+      rounds.push(rec);
+      playerScore += sc.playerPoints;
+      oppScore += sc.opponentPoints;
+
+      $("calc-indicator").style.display = "none";
+
+      var om = $("opp-move-el");
+      om.classList.remove("reveal", "coop", "def");
+      void om.offsetWidth;
+      om.textContent = "Opponent: " + (oppMove === "cooperate" ? "COOPERATE" : "DEFECT");
+      om.className = "opp-move " + (oppMove === "cooperate" ? "coop" : "def");
+      void om.offsetWidth;
+      om.classList.add("reveal");
+
+      var pf = $("play-portrait-frame");
+      if (pf) {
+        pf.classList.remove("portrait-pulse-coop", "portrait-pulse-def");
+        void pf.offsetWidth;
+        pf.classList.add(oppMove === "cooperate" ? "portrait-pulse-coop" : "portrait-pulse-def");
+        setTimeout(function () {
+          pf.classList.remove("portrait-pulse-coop", "portrait-pulse-def");
+        }, 700);
+      }
+
+      $("score-you").classList.add("pulse");
+      $("score-opp").classList.add("pulse");
+      $("score-you").textContent = String(playerScore);
+      $("score-opp").textContent = String(oppScore);
+      setTimeout(function () {
+        $("score-you").classList.remove("pulse");
+        $("score-opp").classList.remove("pulse");
+      }, 450);
+
+      var pop = $("pop-you");
+      pop.style.display = "block";
+      pop.textContent = (sc.playerPoints >= 0 ? "+" : "") + sc.playerPoints;
+      pop.className = "points-pop " + (sc.playerPoints > 1 ? "pos" : "neg");
+      setTimeout(function () { pop.style.display = "none"; }, 900);
+
+      appendRoundVisual(rec, rec.round);
+      updateRates();
+
+      $("play-round-label").textContent = rounds.length >= totalRounds
+        ? "Round " + totalRounds + " / " + totalRounds
+        : "Round " + (rounds.length + 1) + " / " + totalRounds;
+      $("play-progress").style.width = ((rounds.length / totalRounds) * 100) + "%";
+
+      saveSession();
+
+      roundInProgress = false;
+
+      if (rounds.length >= totalRounds) {
+        setPlayButtonsDisabled(true);
+        setTimeout(function () { showEndScreen(); }, 1200);
+      } else {
+        setPlayButtonsDisabled(false);
+      }
+    }, delay);
+  }
+
+  function setPlayButtonsDisabled(dis) {
+    $("btn-coop").disabled = dis;
+    $("btn-def").disabled = dis;
+  }
+
+  function showEndScreen() {
+    $("end-score-you").textContent = String(playerScore);
+    $("end-score-opp").textContent = String(oppScore);
+    var w = $("end-winner");
+    w.className = "winner";
+    if (playerScore > oppScore) {
+      w.textContent = "You win.";
+      w.classList.add("win");
+    } else if (playerScore < oppScore) {
+      w.textContent = "Opponent wins.";
+      w.classList.add("lose");
+    } else {
+      w.textContent = "Stalemate.";
+      w.classList.add("tie");
+    }
+
+    var n = rounds.length;
+    var yc = rounds.filter(function (r) { return r.playerMove === "cooperate"; }).length;
+    var rate = n ? yc / n : 0;
+    var tag = $("verdict-tag");
+    var vt = $("verdict-text");
+    if (rate > 0.7) {
+      tag.textContent = "IDEALIST";
+      vt.textContent = "You extended trust generously. In a kinder world, this would always win.";
+    } else if (rate >= 0.4) {
+      tag.textContent = "PRAGMATIST";
+      vt.textContent = "You adapted to your opponent. A balanced and strategic approach.";
+    } else {
+      tag.textContent = "DEFECTOR";
+      vt.textContent = "You leaned on self-interest. It may have paid off — or cost you.";
+    }
+
+    $("match-analysis").textContent = MATCH_ANALYSIS[currentStrategy.name] || "";
+
+    showScreen("screen-end");
+    saveSession();
+  }
+
+  function simulateStrategyAgainstMoves(strategy, fixedOpponentMoves) {
+    var decider = strategy.decide;
+    var g = null;
+    if (strategy.name === "Gradual") {
+      g = createGradualStrategy();
+      decider = g.decide.bind(g);
+    } else if (strategy.reset) {
+      strategy.reset();
+    }
+
+    var hist = [];
+    var total = 0;
+    for (var i = 0; i < fixedOpponentMoves.length; i++) {
+      var oppM = fixedOpponentMoves[i];
+      var myM = strategy.strategyKey === "pure_random" ? randomDecideFair() : decider(hist);
+      var sc = scoreRound(myM, oppM);
+      total += sc.playerPoints;
+      hist.push({ playerMove: myM, opponentMove: oppM });
+    }
+    return total;
+  }
+
+  function openCompareModal() {
+    var fixedOpp = rounds.map(function (r) { return r.opponentMove; });
+    var rows = STRATEGIES.map(function (s, idx) {
+      var pts = simulateStrategyAgainstMoves(s, fixedOpp);
+      return { name: s.name, pts: pts, idx: idx };
+    });
+    rows.sort(function (a, b) { return b.pts - a.pts; });
+    var list = $("compare-list");
+    list.innerHTML = "";
+    rows.forEach(function (row, rank) {
+      var div = document.createElement("div");
+      div.className = "lb-row" + (row.name === currentStrategy.name ? " you" : "");
+      var pidLb = STRATEGIES[row.idx].portraitId || "portrait-tft";
+      div.innerHTML =
+        '<span class="lb-rank">' + (rank + 1) + ".</span>" +
+        '<span class="lb-name"><span class="lb-avatar" aria-hidden="true">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 120" class="lb-avatar-svg"><use href="#' + pidLb + '"/></svg></span><span>' +
+        escapeHtml(row.name) + (row.name === currentStrategy.name ? " (you)" : "") + "</span></span>" +
+        '<span class="lb-pts">' + row.pts + "</span>";
+      list.appendChild(div);
+    });
+    $("modal-compare").classList.add("open");
+    $("modal-compare").setAttribute("aria-hidden", "false");
+  }
+
+  function closeCompareModal() {
+    $("modal-compare").classList.remove("open");
+    $("modal-compare").setAttribute("aria-hidden", "true");
+  }
+
+  function beginInterrogation() {
+    if (selectedIndex < 0) return;
+    currentStrategy = STRATEGIES[selectedIndex];
+    totalRounds = parseInt($("rounds-range").value, 10);
+    resetGameState();
+    gradualInst.reset();
+    if (currentStrategy.reset) currentStrategy.reset();
+    showScreen("screen-play");
+    initPlayScreen();
+    saveSession();
+  }
+
+  function resumeSession(data) {
+    var idx = STRATEGIES.findIndex(function (s) { return s.name === data.strategyName; });
+    if (idx < 0) return;
+    selectedIndex = idx;
+    currentStrategy = STRATEGIES[idx];
+    totalRounds = data.totalRounds;
+    rounds = data.rounds || [];
+    playerScore = rounds.reduce(function (s, r) { return s + r.playerPoints; }, 0);
+    oppScore = rounds.reduce(function (s, r) { return s + r.opponentPoints; }, 0);
+    document.querySelectorAll(".strategy-card").forEach(function (c, i) {
+      c.classList.toggle("selected", i === idx);
+    });
+    $("btn-begin").disabled = false;
+    $("rounds-range").value = String(totalRounds);
+    $("rounds-val").textContent = String(totalRounds);
+
+    if (rounds.length >= totalRounds) {
+      showEndScreen();
+    } else {
+      showScreen("screen-play");
+      initPlayScreen();
+    }
+    $("modal-resume").classList.remove("open");
+  }
+
+  function onKeyDown(e) {
+    if (!$("screen-play").classList.contains("active")) return;
+    if ($("modal-compare").classList.contains("open")) return;
+    if ($("modal-resume").classList.contains("open")) return;
+    var k = e.key.toLowerCase();
+    if (k === "c") {
+      e.preventDefault();
+      playRound("cooperate");
+    } else if (k === "d") {
+      e.preventDefault();
+      playRound("defect");
+    }
+  }
+
+  $("rounds-range").addEventListener("input", function () {
+    $("rounds-val").textContent = this.value;
+  });
+
+  $("btn-begin").addEventListener("click", beginInterrogation);
+  $("btn-coop").addEventListener("click", function () { playRound("cooperate"); });
+  $("btn-def").addEventListener("click", function () { playRound("defect"); });
+  document.addEventListener("keydown", onKeyDown);
+
+  $("btn-again").addEventListener("click", function () {
+    clearSession();
+    selectedIndex = -1;
+    currentStrategy = null;
+    document.querySelectorAll(".strategy-card").forEach(function (c) { c.classList.remove("selected"); });
+    $("btn-begin").disabled = true;
+    resetGameState();
+    showScreen("screen-select");
+  });
+
+  $("btn-compare").addEventListener("click", openCompareModal);
+  $("modal-compare-close").addEventListener("click", closeCompareModal);
+  $("modal-compare").addEventListener("click", function (e) {
+    if (e.target === $("modal-compare")) closeCompareModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && $("modal-compare").classList.contains("open")) closeCompareModal();
+  });
+
+  $("btn-resume").addEventListener("click", function () {
+    if (pendingResume) resumeSession(pendingResume);
+  });
+  $("btn-fresh").addEventListener("click", function () {
+    clearSession();
+    $("modal-resume").classList.remove("open");
+    pendingResume = null;
+  });
+
+  buildStrategyCards();
+
+  try {
+    var raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      pendingResume = JSON.parse(raw);
+      if (pendingResume && pendingResume.strategyName && pendingResume.totalRounds) {
+        $("modal-resume").classList.add("open");
+      }
+    }
+  } catch (err) {
+    pendingResume = null;
+  }
+})();
+  </script>
+</body>
+</html>
+
