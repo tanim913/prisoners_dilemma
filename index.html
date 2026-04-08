@@ -75,6 +75,31 @@
       min-height: 100dvh;
     }
 
+    .app-credit {
+      margin-top: 1.25rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(0, 255, 195, 0.12);
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .app-credit p {
+      margin: 0;
+    }
+
+    .app-credit a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 255, 195, 0.35);
+    }
+
+    .app-credit a:hover {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
     .glass {
       background: var(--surface);
       backdrop-filter: blur(14px);
@@ -1938,6 +1963,13 @@
         </div>
       </div>
     </section>
+
+    <footer class="app-credit" role="contentinfo">
+      <p>
+        Credit &amp; © 2026 <a href="https://github.com/tanim913/" target="_blank" rel="noopener noreferrer">Azizullah Tanim</a>.
+        All rights reserved.
+      </p>
+    </footer>
   </div>
 
   <div id="modal-compare" class="modal-overlay" aria-hidden="true">
