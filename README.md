@@ -26,15 +26,15 @@ A single-file, static **iterated Prisoner’s Dilemma** you can open in a browse
 
 ## Features
 
-- **15 strategies** with short rules, dossier quotes, and portraits.
-- **5–200 rounds** (slider on the setup screen).
+- **25 strategies** (including one pure random) with short rules, dossier quotes, and portraits.
+- **5–200 rounds** (slider directly under the title row on the setup screen, inside a **sticky** top bar with **BRIEFING** so rounds and rules stay reachable while scrolling the card list).
 - **Heatmap**, **round log**, cooperation rates, and clear outcome / verdict copy.
 - **Keyboard**: `C` cooperate, `D` defect (when the game is focused).
 - **Session resume**: progress is stored in `sessionStorage` under `prisonersDilemmaSession` (same tab/origin); reload may prompt to continue.
 - **Comparison modal**: see how other strategies would have scored against the **same** opponent moves in your match.
-- **Field briefing**: narrative rules and payoff table (**READ THE BRIEFING** on the setup screen).
+- **Field briefing**: narrative rules and payoff table (**BRIEFING** control, top right on the setup screen).
 - **Sound**: short Web Audio cues for round tension and outcomes; **AUDIO ON** / **AUDIO OFF** on the play bar; **ENABLE AUDIO** on the briefing page (unlocks the browser audio context). Mute preference is stored in `localStorage` (`prisonersDilemmaSoundMuted`). If the system requests reduced motion, audio starts muted until you turn it on.
-- **Mobile**: responsive layout, safe-area padding, touch-friendly controls.
+- **Mobile / desktop**: after you select a strategy, **BEGIN INTERROGATION** appears **under that card** only (no separate bottom bar). On phones the play-screen dossier portrait stack is **more compact** to free vertical space.
 - **Random** strategy uses a fair 50/50 choice per round (`crypto.getRandomValues` when available).
 
 ## Strategies
@@ -47,14 +47,24 @@ A single-file, static **iterated Prisoner’s Dilemma** you can open in a browse
 | Always Cooperate | Nice |
 | Always Defect | Nasty |
 | Friedman (Grim Trigger) | Nice — cooperates until you defect once, then always defects |
-| Joss | Nasty — mostly TFT, occasional surprise defect when “mirroring” cooperation |
-| Graaskamp | Nasty — TFT with a forced probe defection on round 50 |
+| Joss | Nasty — opens with defect, then mostly TFT with occasional surprise defect |
+| Graaskamp | Nasty — opens hostile, then TFT with a forced probe defection on round 50 |
 | Tester | Nasty — probes on round one, then adapts |
 | Pavlov | Nice — win-stay, lose-shift |
 | Gradual | Nice — escalates punishment, then cools off |
 | Soft Majority | Nice — cooperates if you’ve cooperated ≥ half the time |
 | Hard Majority | Nasty — cooperates only if you cooperate *more* than half the time |
-| Naive Prober | Nasty — mostly TFT with random probing defections |
+| Naive Prober | Nasty — opens hostile, then mostly TFT with random probing defections |
+| Cold Open | Nasty — defect first, then Tit for Tat |
+| Bunker | Nasty — defects first two rounds, then mirrors last move |
+| Hungry Majority | Nasty — defect first; coop only if ≥3 of your last 5 moves were cooperate |
+| Steel Gate | Nasty — defect first; then Hard Majority style |
+| Spite Echo | Nasty — defects until you defect once; then TFT |
+| Shock Prober | Nasty — defect first; TFT with random probes |
+| Warm Opening | Nice — cooperate first three rounds, then TFT |
+| Olive Branch | Nice — TFT with auto-cooperate after mutual defection |
+| Slow Counter | Nice — cooperate until two of your defections pile up; then TFT |
+| Guardian | Nice — TFT with stability bonus after two cooperations in a row |
 | Random | Chaos — 50/50 each round, no memory |
 
 ## Tech stack
