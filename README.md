@@ -32,6 +32,8 @@ A single-file, static **iterated Prisoner’s Dilemma** you can open in a browse
 - **Keyboard**: `C` cooperate, `D` defect (when the game is focused).
 - **Session resume**: progress is stored in `sessionStorage` under `prisonersDilemmaSession` (same tab/origin); reload may prompt to continue.
 - **Comparison modal**: see how other strategies would have scored against the **same** opponent moves in your match.
+- **Field briefing**: narrative rules and payoff table (**READ THE BRIEFING** on the setup screen).
+- **Sound**: short Web Audio cues for round tension and outcomes; **AUDIO ON** / **AUDIO OFF** on the play bar; **ENABLE AUDIO** on the briefing page (unlocks the browser audio context). Mute preference is stored in `localStorage` (`prisonersDilemmaSoundMuted`). If the system requests reduced motion, audio starts muted until you turn it on.
 - **Mobile**: responsive layout, safe-area padding, touch-friendly controls.
 - **Random** strategy uses a fair 50/50 choice per round (`crypto.getRandomValues` when available).
 
@@ -57,7 +59,7 @@ A single-file, static **iterated Prisoner’s Dilemma** you can open in a browse
 
 ## Tech stack
 
-- Vanilla **HTML**, **CSS**, and **JavaScript** (no build step).
+- Vanilla **HTML**, **CSS**, and **JavaScript** (no build step); **Web Audio API** for optional UI sounds (no external audio files).
 - Fonts: [Syne](https://fonts.google.com/specimen/Syne) and [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono) via Google Fonts (requires network for first load).
 
 ## Repository layout
