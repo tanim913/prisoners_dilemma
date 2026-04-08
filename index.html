@@ -134,6 +134,109 @@
       margin-bottom: 1.5rem;
     }
 
+    .strategy-card-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .strategy-card-begin {
+      display: none !important;
+      align-items: center;
+      justify-content: center;
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0;
+      min-height: 48px;
+      padding: 0.75rem 1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      box-sizing: border-box;
+    }
+
+    .select-sticky-bar {
+      position: sticky;
+      top: max(0px, env(safe-area-inset-top));
+      z-index: 12;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.75rem;
+      background: linear-gradient(180deg, rgba(14, 18, 28, 0.97) 0%, rgba(14, 18, 28, 0.94) 70%, rgba(14, 18, 28, 0) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .select-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .select-header-titles {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .select-header-titles .sub {
+      margin-bottom: 0.45rem;
+    }
+
+    .select-header-titles h1.glitch {
+      margin-bottom: 0;
+    }
+
+    .btn-briefing {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-height: 44px;
+      padding: 0.45rem 0.75rem;
+      margin-top: 0.1rem;
+      border: 1px solid rgba(0, 255, 195, 0.38);
+      border-radius: 8px;
+      background: rgba(0, 255, 195, 0.08);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      -webkit-tap-highlight-color: rgba(0, 255, 195, 0.12);
+      touch-action: manipulation;
+    }
+
+    .btn-briefing svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    .btn-briefing:hover {
+      background: rgba(0, 255, 195, 0.14);
+      border-color: rgba(0, 255, 195, 0.5);
+      box-shadow: 0 0 18px rgba(0, 255, 195, 0.15);
+    }
+
+    .select-sticky-bar .rounds-row {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      .select-header {
+        align-items: flex-start;
+      }
+    }
+
+    .strategy-card-wrap--selected .strategy-card-begin {
+      display: flex !important;
+    }
+
     .strategy-card {
       cursor: pointer;
       padding: 0.85rem 1rem;
@@ -1252,6 +1355,15 @@
         display: block;
       }
 
+      #screen-play #play-dossier.character-dossier {
+        padding: 0.5rem max(0.45rem, env(safe-area-inset-right)) 0.55rem max(0.45rem, env(safe-area-inset-left));
+      }
+
+      #screen-play #play-dossier .character-portrait-frame {
+        max-width: min(110px, 44vw);
+        max-height: min(130px, 19dvh);
+      }
+
       .play-main {
         padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
       }
@@ -1610,21 +1722,94 @@
         <circle cx="44" cy="62" r="3" fill="#ff3b5c"/><circle cx="58" cy="58" r="3" fill="#8b92a8"/>
         <path d="M30 88 H66" stroke="#8b92a8" stroke-dasharray="4 3" opacity="0.6"/>
       </symbol>
+      <symbol id="portrait-coldopen" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M48 28 L68 82 H28 Z" fill="none" stroke="#00ffc3" stroke-width="2" opacity="0.5"/>
+        <rect x="38" y="44" width="20" height="36" rx="2" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>
+        <path d="M48 52 V72" stroke="#8b92a8" stroke-width="2"/>
+      </symbol>
+      <symbol id="portrait-bunker" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <rect x="20" y="40" width="56" height="44" rx="3" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>
+        <line x1="20" y1="52" x2="76" y2="52" stroke="#ff3b5c" stroke-width="1.5" opacity="0.6"/>
+        <rect x="40" y="50" width="16" height="22" fill="none" stroke="#00ffc3" stroke-width="2"/>
+      </symbol>
+      <symbol id="portrait-hungrymaj" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M28 88 Q48 40 68 88" fill="none" stroke="#ff3b5c" stroke-width="2.5"/>
+        <circle cx="36" cy="56" r="4" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <circle cx="52" cy="48" r="4" fill="none" stroke="#f5a623" stroke-width="2"/>
+        <circle cx="60" cy="64" r="4" fill="none" stroke="#f5a623" stroke-width="2"/>
+      </symbol>
+      <symbol id="portrait-steelgate" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <rect x="30" y="34" width="36" height="52" rx="4" fill="none" stroke="#8b92a8" stroke-width="2"/>
+        <circle cx="48" cy="60" r="10" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <rect x="46" y="58" width="4" height="14" fill="#ff3b5c" rx="1"/>
+      </symbol>
+      <symbol id="portrait-spiteecho" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="48" cy="58" r="22" fill="none" stroke="#ff3b5c" stroke-width="2"/>
+        <circle cx="48" cy="58" r="14" fill="none" stroke="#ff3b5c" stroke-width="1.5" opacity="0.5"/>
+        <path d="M48 36 V32 M48 84 V88 M26 58 H22 M70 58 H74" stroke="#00ffc3" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="portrait-shockprober" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M48 30 L58 70 H38 Z" fill="none" stroke="#f5a623" stroke-width="2.5"/>
+        <circle cx="48" cy="78" r="16" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <path d="M40 78 H56" stroke="#ff3b5c" stroke-width="2.5" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="portrait-warmopen" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M32 78 Q48 32 64 78" fill="none" stroke="#00ffc3" stroke-width="2.5"/>
+        <circle cx="40" cy="62" r="5" fill="#00ffc3" opacity="0.4"/>
+        <circle cx="48" cy="50" r="5" fill="#00ffc3" opacity="0.55"/>
+        <circle cx="56" cy="62" r="5" fill="#00ffc3" opacity="0.4"/>
+      </symbol>
+      <symbol id="portrait-olive" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M48 38 Q62 58 48 92 Q34 58 48 38" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <line x1="48" y1="56" x2="48" y2="72" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="portrait-slowcounter" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <circle cx="40" cy="50" r="14" fill="none" stroke="#00ffc3" stroke-width="2"/>
+        <circle cx="58" cy="66" r="14" fill="none" stroke="#00ffc3" stroke-width="2" opacity="0.5"/>
+        <path d="M30 88 L66 88" stroke="#8b92a8" stroke-width="2"/>
+      </symbol>
+      <symbol id="portrait-guardian" viewBox="0 0 96 120">
+        <rect width="96" height="120" fill="#070910"/>
+        <path d="M30 78 L48 42 L66 78 Z" fill="none" stroke="#00ffc3" stroke-width="2.5" stroke-linejoin="round"/>
+        <rect x="38" y="72" width="20" height="24" fill="none" stroke="#8b92a8" stroke-width="2"/>
+      </symbol>
     </defs>
   </svg>
   <div class="wrap">
     <section id="screen-select" class="screen glass active">
       <div class="screen-inner">
-        <p class="sub">Declassified simulation // PD-Ω</p>
-        <h1 class="glitch">CHOOSE YOUR OPPONENT</h1>
-        <div id="strategy-cards" class="card-grid"></div>
-        <div class="rounds-row">
-          <label for="rounds-range">Rounds</label>
-          <input type="range" id="rounds-range" min="5" max="200" value="50" />
-          <span class="round-val" id="rounds-val">50</span>
+        <div class="select-sticky-bar">
+          <div class="select-header">
+            <div class="select-header-titles">
+              <p class="sub">Declassified simulation // PD-Ω</p>
+              <h1 class="glitch">CHOOSE YOUR OPPONENT</h1>
+            </div>
+            <button type="button" class="btn-briefing" id="btn-to-rules" aria-label="Open field briefing">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                <line x1="12" y1="8" x2="12" y2="14" />
+                <line x1="10" y1="10" x2="14" y2="10" />
+              </svg>
+              <span>BRIEFING</span>
+            </button>
+          </div>
+          <div class="rounds-row">
+            <label for="rounds-range">Rounds</label>
+            <input type="range" id="rounds-range" min="5" max="200" value="50" />
+            <span class="round-val" id="rounds-val">50</span>
+          </div>
         </div>
-        <button type="button" class="btn btn-ghost" id="btn-to-rules">READ THE BRIEFING</button>
-        <button type="button" id="btn-begin" class="btn btn-primary" disabled>BEGIN INTERROGATION</button>
+        <div id="strategy-cards" class="card-grid"></div>
       </div>
     </section>
 
@@ -1636,7 +1821,7 @@
           <p>They bring you to a room where the air tastes like tape and old light. On one wall, glass that shows both directions at once. You cannot see who stands beyond it until the instant locks, and then the truth is already carved into the record.</p>
           <p>Each round is a single beat inside that silence. You offer an open palm, or you do not. They do the same, or they do not. No one watches the other choice until the doors close. That is the law of this room.</p>
           <p>If both of you reach, the ledger writes three for you and three for them, a modest peace that bruises no one. If you reach and they refuse, you swallow nothing while they take five. If you refuse and they reach, the ledger flips and the wound is yours alone. If both refuse, you split the cold floor: one for you and one for them, steel answering steel.</p>
-          <p>Fifteen files wait in the rack behind the mirror. Each mark is a different habit of mind. Some forgive. Some punish forever. Some throw dice and grin at the ceiling. Choose who sits across from you before you lay your hand on the plate.</p>
+          <p>Twenty five files wait in the rack behind the mirror. Each mark is a different habit of mind. Some forgive. Some punish forever. Some throw dice and grin at the ceiling. Choose who sits across from you before you lay your hand on the plate.</p>
           <p>You will play as many rounds as the slider grants. Keys <kbd class="kbd-inline">C</kbd> and <kbd class="kbd-inline">D</kbd> repeat the two gestures from the keyboard. If you leave and return, this terminal may ask to reopen your last session. When the last round ends, you may open a ledger that asks how other strategies would have scored against the same chain of moves from the far side.</p>
         </div>
         <div class="rules-payoff-wrap glass">
@@ -1883,6 +2068,74 @@
     return history[history.length - 1].opponentMove === "cooperate" ? "cooperate" : "defect";
   }
 
+  function decideBunker(h) {
+    if (h.length < 2) return "defect";
+    var last = h[h.length - 1];
+    return last.opponentMove === "cooperate" ? "cooperate" : "defect";
+  }
+
+  function decideHungryMajority(h) {
+    if (h.length === 0) return "defect";
+    var start = Math.max(0, h.length - 5);
+    var co = 0;
+    for (var j = start; j < h.length; j++) {
+      if (h[j].opponentMove === "cooperate") co++;
+    }
+    return co >= 3 ? "cooperate" : "defect";
+  }
+
+  function decideSteelGate(h) {
+    if (h.length === 0) return "defect";
+    var co = h.reduce(function (n, x) { return n + (x.opponentMove === "cooperate" ? 1 : 0); }, 0);
+    return co / h.length > 0.5 ? "cooperate" : "defect";
+  }
+
+  function decideSpiteEcho(h) {
+    if (h.length === 0) return "defect";
+    var everD = false;
+    for (var k = 0; k < h.length; k++) {
+      if (h[k].opponentMove === "defect") { everD = true; break; }
+    }
+    if (!everD) return "defect";
+    return titForTat(h);
+  }
+
+  function decideShockProber(h) {
+    if (h.length === 0) return "defect";
+    var m = titForTat(h);
+    if (m === "cooperate" && Math.random() < 0.2) return "defect";
+    return m;
+  }
+
+  function decideWarmOpening(h) {
+    if (h.length < 3) return "cooperate";
+    return titForTat(h);
+  }
+
+  function decideOliveBranch(h) {
+    if (h.length === 0) return "cooperate";
+    var last = h[h.length - 1];
+    if (last.playerMove === "defect" && last.opponentMove === "defect") return "cooperate";
+    return titForTat(h);
+  }
+
+  function decideSlowCounter(h) {
+    if (h.length === 0) return "cooperate";
+    var od = h.reduce(function (n, x) { return n + (x.opponentMove === "defect" ? 1 : 0); }, 0);
+    if (od < 2) return "cooperate";
+    return titForTat(h);
+  }
+
+  function decideGuardian(h) {
+    if (h.length === 0) return "cooperate";
+    if (h.length >= 2 &&
+      h[h.length - 1].opponentMove === "cooperate" &&
+      h[h.length - 2].opponentMove === "cooperate") {
+      return "cooperate";
+    }
+    return titForTat(h);
+  }
+
   var STRATEGIES = [
     {
       name: "Tit for Tat",
@@ -1957,9 +2210,10 @@
       portraitId: "portrait-joss",
       avatar: "\ud83c\udfad",
       badge: "Nasty",
-      description: "Mostly copies your last move; occasionally stabs when mirroring cooperation.",
+      description: "Opens with defection, then mostly copies you; occasionally stabs when mirroring cooperation.",
       quote: '"Symmetry is a lovely mask — I wear it until the room grows too comfortable. I mirror you because predictability lulls every watchman to sleep; then I let the dice nick the mirror, just enough to remind you that innocence and pattern are not the same sacrament. I am fair often enough to be trusted, and ruthless enough never to be fully known. Call it insurance: the premium is your certainty."',
       decide: function (h) {
+        if (h.length === 0) return "defect";
         var m = titForTat(h);
         if (m === "cooperate" && Math.random() < 0.1) return "defect";
         return m;
@@ -1970,9 +2224,10 @@
       portraitId: "portrait-graaskamp",
       avatar: "\ud83c\udfaf",
       badge: "Nasty",
-      description: "Tit for Tat with a forced probe defection on round 50.",
+      description: "Opens hostile, then Tit for Tat with a forced probe defection on round 50.",
       quote: '"I will walk the long corridor of courtesy beside you — mirrors on every wall, each round a polite reflection of the last. Patience is not naivety; it is waiting until the story forgets to guard its lie. Then, on the page where the script demands it, the fiction snaps: one clean fissure, and the shape behind your choices stops pretending to be anything but itself."',
       decide: function (h) {
+        if (h.length === 0) return "defect";
         if (h.length + 1 === 50) return "defect";
         return titForTat(h);
       }
@@ -2036,13 +2291,107 @@
       portraitId: "portrait-prober",
       avatar: "\ud83d\udd0d",
       badge: "Nasty",
-      description: "Mostly Tit for Tat with random probing defections.",
+      description: "Opens hostile, then mostly Tit for Tat with random probing defections.",
       quote: '"Mostly I walk in your footsteps — not from weakness, but because the path you carve tells me who you are when no one is performing. Yet faith without test rots into dogma; now and then I plant a thorn where you expect petals, and watch whether your course corrects or hardens. The experiment is small; the data is loud. I learn you twice: once by mimicry, once by the tremor of your response to surprise."',
       decide: function (h) {
+        if (h.length === 0) return "defect";
         var m = titForTat(h);
         if (m === "cooperate" && Math.random() < 0.2) return "defect";
         return m;
       }
+    },
+    {
+      name: "Cold Open",
+      portraitId: "portrait-coldopen",
+      avatar: "\u2744\ufe0f",
+      badge: "Nasty",
+      description: "Defects first, then pure Tit for Tat.",
+      quote: '"The window for innocence is exactly one heartbeat wide. I slam it shut on purpose so you learn the temperature of the room before you learn my name. After that I am only an echo: your cruelty or your grace returns wearing my face. Do not mistake the mirror for mercy; it is physics."',
+      decide: function (h) {
+        if (h.length === 0) return "defect";
+        return titForTat(h);
+      }
+    },
+    {
+      name: "Bunker",
+      portraitId: "portrait-bunker",
+      avatar: "\ud83d\udee1\ufe0f",
+      badge: "Nasty",
+      description: "Defects the first two rounds, then mirrors your last move.",
+      quote: '"Courtesy is a luxury for people who trust the walls. I seal the hatch twice: once to hear the storm, twice to remember its voice. When I finally slide the bolt open, I step out already knowing whether you sing hymns or hail. The echo you hear is not politeness; it is the report you forced me to file."',
+      decide: function (h) { return decideBunker(h); }
+    },
+    {
+      name: "Hungry Majority",
+      portraitId: "portrait-hungrymaj",
+      avatar: "\ud83d\udc3a",
+      badge: "Nasty",
+      description: "Defects first; cooperates only if you cooperated at least three of the last five rounds.",
+      quote: '"I do not run on faith; I run on fat stored in the last five dawns. Show me three open palms in that frostbitten window and I might unclench my jaw. Until then I stay hungry on purpose. Predators are not cruel; they are honest about the cost of warmth."',
+      decide: function (h) { return decideHungryMajority(h); }
+    },
+    {
+      name: "Steel Gate",
+      portraitId: "portrait-steelgate",
+      avatar: "\u2699\ufe0f",
+      badge: "Nasty",
+      description: "Defects first; then cooperates only if you cooperate more than half the time overall.",
+      quote: '"The gate does not ask what you intended; it weighs what you built. Half measures are still noise until the scale tips. I grind my hinge once in your ear so you remember I have teeth. Past that line I trade only in ratios sharp enough to cut paper."',
+      decide: function (h) { return decideSteelGate(h); }
+    },
+    {
+      name: "Spite Echo",
+      portraitId: "portrait-spiteecho",
+      avatar: "\ud83d\udca5",
+      badge: "Nasty",
+      description: "Defects until you defect at least once; then plays Tit for Tat. If you never defect, never cooperates.",
+      quote: '"I am a single note held in an empty hall until you break the silence with a wrong chord. Until then I will repeat the same harsh syllable forever, not because I love pain, but because I refuse to teach you my melody for free. The instant you bruise the air, I become your echo with memory."',
+      decide: function (h) { return decideSpiteEcho(h); }
+    },
+    {
+      name: "Shock Prober",
+      portraitId: "portrait-shockprober",
+      avatar: "\u26a1",
+      badge: "Nasty",
+      description: "Defects first, then Tit for Tat with random surprise defections when mirroring cooperation.",
+      quote: '"The first spark is never an accident; it is a probe with teeth. After that I walk your rhythm until habit lulls you — then I fray one stitch at random to see if your garment was ever real. Data tastes like copper. I swallow it and smile with a closed mouth."',
+      decide: function (h) { return decideShockProber(h); }
+    },
+    {
+      name: "Warm Opening",
+      portraitId: "portrait-warmopen",
+      avatar: "\ud83c\udf3f",
+      badge: "Nice",
+      description: "Always cooperates the first three rounds, then Tit for Tat.",
+      quote: '"I light three small lamps in the fog not because I trust the road, but because vision is a gift you deserve before judgment arrives. After the third flame I am only weather vane and law: what you send, I return, tempered by the heat you yourself chose to keep alive."',
+      decide: function (h) { return decideWarmOpening(h); }
+    },
+    {
+      name: "Olive Branch",
+      portraitId: "portrait-olive",
+      avatar: "\ud83c\udf3c",
+      badge: "Nice",
+      description: "Tit for Tat, but after mutual defection the next move is always cooperate.",
+      quote: '"When both of us strike at once, the air deserves a single breath of truce before the next verdict. I lay one green branch on the table not as surrender, but as punctuation: the story is not finished until someone admits the echo was shared. Then the mirror resumes, wiser and slower."',
+      decide: function (h) { return decideOliveBranch(h); }
+    },
+    {
+      name: "Slow Counter",
+      portraitId: "portrait-slowcounter",
+      avatar: "\ud83e\uddff",
+      badge: "Nice",
+      description: "Cooperates until you have defected twice cumulatively; then Tit for Tat.",
+      quote: '"I discount the first thunder as weather. I discount the second as habit forming. After that I treat every choice as evidence and answer in kind, because patience without a boundary becomes another kind of lie. I would rather be late to anger than early to regret."',
+      decide: function (h) { return decideSlowCounter(h); }
+    },
+    {
+      name: "Guardian",
+      portraitId: "portrait-guardian",
+      avatar: "\u2b50",
+      badge: "Nice",
+      description: "Tit for Tat, but keeps cooperating if your last two moves were both cooperate.",
+      quote: '"Streaks deserve shelter. If you bring me two clear skies in a row, I extend the roof one more span even when suspicion whispers. Stability is not naivety; it is the choice to oil what already turns smooth. Hurt the hinge twice and the old law returns, cold and exact."',
+      decide: function (h) { return decideGuardian(h); }
     },
     {
       name: "Random",
@@ -2063,14 +2412,24 @@
     "Always Cooperate": "A sitting duck for exploitation, yet it rewarded every cooperative streak you offered.",
     "Always Defect": "The baseline predator: cooperation from you fed its payoff unless you punished back consistently.",
     "Friedman (Grim Trigger)": "One breach ended the honeymoon forever — early aggression locked you into mutual destruction.",
-    "Joss": "Slight random nastiness kept you guessing; steady cooperation was sometimes punished by noise.",
-    "Graaskamp": "Mostly fair, with one scheduled knife at round fifty if you lasted that long.",
+    "Joss": "It drew blood first, then mostly mirrored you — occasional random slashes kept the pattern from feeling safe.",
+    "Graaskamp": "Cold open, then mostly fair mirrors, with one scheduled knife at round fifty if you lasted that long.",
     "Tester": "Round one was a trap; your first reply steered the opponent between exploitation and mimicry.",
     "Pavlov": "Win-stay lose-shift dynamics meant stable cooperation or oscillation — your payoffs trained its habits.",
     "Gradual": "Punishments scaled with your betrayals and cooled down after — long games rewarded rhythm and repair.",
     "Soft Majority": "It followed the crowd you built: if you cooperated often, it softened; if not, it turned harsh.",
     "Hard Majority": "It demanded proof before trust — cold opens and low cooperation kept it defecting.",
-    "Naive Prober": "Mostly reciprocal with random tests — your cooperation sometimes met unprovoked experiments.",
+    "Naive Prober": "Hostile first, then mostly reciprocal with random tests — your cooperation sometimes met unprovoked experiments.",
+    "Cold Open": "A violent hello, then clean reciprocity — long cooperation was possible once you survived the first cut.",
+    "Bunker": "Double-sealed hostility before it mirrored you; early rounds were costly unless you punished back.",
+    "Hungry Majority": "It watched only your recent generosity window; streaks of cooperation could thaw the wolf.",
+    "Steel Gate": "Cold proof demanded a leaning majority of cooperation before the gate lifted past round one.",
+    "Spite Echo": "Until you defected once, it never offered peace; afterward your pattern became its law.",
+    "Shock Prober": "A harsh opener, then mimicry flecked with random betrayal — rhythm was never safe.",
+    "Warm Opening": "Three rounds of unconditional trust, then strict mirroring — early kindness bought negotiation room.",
+    "Olive Branch": "Mutual disaster triggered an automatic truce beat before Tit for Tat resumed.",
+    "Slow Counter": "Two of your defections had to accumulate before it armed the mirror; until then it stayed open.",
+    "Guardian": "Twin cooperations bought a stability bonus; betrayals still flipped it back to strict echo.",
     "Random": "No narrative, only variance — your score reflected luck as much as intent."
   };
 
@@ -2247,10 +2606,31 @@
     if (id === "screen-rules") AudioUX.syncUi();
   }
 
+  function syncBeginButtons() {
+    var en = selectedIndex >= 0;
+    document.querySelectorAll(".strategy-card-begin").forEach(function (b) {
+      var ix = parseInt(b.getAttribute("data-card-index"), 10);
+      b.disabled = !en || ix !== selectedIndex;
+    });
+  }
+
+  function setSelectedStrategyCardIndex(i) {
+    document.querySelectorAll(".strategy-card").forEach(function (c) { c.classList.remove("selected"); });
+    document.querySelectorAll(".strategy-card-wrap").forEach(function (w, wi) {
+      w.classList.toggle("strategy-card-wrap--selected", wi === i);
+    });
+    var cards = document.querySelectorAll(".strategy-card");
+    if (cards[i]) cards[i].classList.add("selected");
+    selectedIndex = i;
+    syncBeginButtons();
+  }
+
   function buildStrategyCards() {
     var container = $("strategy-cards");
     container.innerHTML = "";
     STRATEGIES.forEach(function (s, i) {
+      var wrap = document.createElement("div");
+      wrap.className = "strategy-card-wrap";
       var card = document.createElement("button");
       card.type = "button";
       card.className = "strategy-card";
@@ -2270,13 +2650,25 @@
         "</div></div>" +
         '<div class="quote-wrap"><div class="quote-inner"><p class="quote">' + escapeHtml(s.quote) + '</p></div></div>';
       card.addEventListener("click", function () {
-        document.querySelectorAll(".strategy-card").forEach(function (c) { c.classList.remove("selected"); });
-        card.classList.add("selected");
-        selectedIndex = i;
-        $("btn-begin").disabled = false;
+        setSelectedStrategyCardIndex(i);
       });
-      container.appendChild(card);
+      var beginMob = document.createElement("button");
+      beginMob.type = "button";
+      beginMob.className = "btn btn-primary strategy-card-begin";
+      beginMob.setAttribute("data-card-index", String(i));
+      beginMob.textContent = "BEGIN INTERROGATION";
+      beginMob.setAttribute("aria-label", "Begin interrogation with " + s.name);
+      beginMob.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (selectedIndex !== i) setSelectedStrategyCardIndex(i);
+        beginInterrogation();
+      });
+      wrap.appendChild(card);
+      wrap.appendChild(beginMob);
+      container.appendChild(wrap);
     });
+    syncBeginButtons();
   }
 
   function escapeHtml(t) {
@@ -2616,10 +3008,13 @@
     rounds = data.rounds || [];
     playerScore = rounds.reduce(function (s, r) { return s + r.playerPoints; }, 0);
     oppScore = rounds.reduce(function (s, r) { return s + r.opponentPoints; }, 0);
+    document.querySelectorAll(".strategy-card-wrap").forEach(function (w, wi) {
+      w.classList.toggle("strategy-card-wrap--selected", wi === idx);
+    });
     document.querySelectorAll(".strategy-card").forEach(function (c, i) {
       c.classList.toggle("selected", i === idx);
     });
-    $("btn-begin").disabled = false;
+    syncBeginButtons();
     $("rounds-range").value = String(totalRounds);
     $("rounds-val").textContent = String(totalRounds);
 
@@ -2667,7 +3062,6 @@
     AudioUX.toggle();
   });
 
-  $("btn-begin").addEventListener("click", beginInterrogation);
   $("btn-coop").addEventListener("click", function () { playRound("cooperate"); });
   $("btn-def").addEventListener("click", function () { playRound("defect"); });
   document.addEventListener("keydown", onKeyDown);
@@ -2677,7 +3071,10 @@
     selectedIndex = -1;
     currentStrategy = null;
     document.querySelectorAll(".strategy-card").forEach(function (c) { c.classList.remove("selected"); });
-    $("btn-begin").disabled = true;
+    document.querySelectorAll(".strategy-card-wrap").forEach(function (w) {
+      w.classList.remove("strategy-card-wrap--selected");
+    });
+    syncBeginButtons();
     resetGameState();
     showScreen("screen-select");
   });
