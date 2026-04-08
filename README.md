@@ -27,7 +27,7 @@ A single-file, static **iterated Prisoner’s Dilemma** you can open in a browse
 ## Features
 
 - **25 strategies** (including one pure random) with short rules, dossier quotes, and portraits.
-- **5–200 rounds** (slider directly under the title row on the setup screen, inside a **sticky** top bar with **BRIEFING** so rounds and rules stay reachable while scrolling the card list).
+- **6–200 rounds, even counts only** (slider directly under the title row on the setup screen, inside a **sticky** top bar with **BRIEFING** so rounds and rules stay reachable while scrolling the card list).
 - **Heatmap**, **round log**, cooperation rates, and clear outcome / verdict copy.
 - **Keyboard**: `C` cooperate, `D` defect (when the game is focused).
 - **Session resume**: progress is stored in `sessionStorage` under `prisonersDilemmaSession` (same tab/origin); reload may prompt to continue.
