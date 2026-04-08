@@ -986,6 +986,159 @@
       padding: 1.25rem 1rem 1.5rem;
     }
 
+    .btn-ghost {
+      width: 100%;
+      margin-bottom: 0.65rem;
+      border: 1px solid rgba(0, 255, 195, 0.35);
+      background: rgba(0, 255, 195, 0.06);
+      color: var(--accent);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(0, 255, 195, 0.12);
+      box-shadow: 0 0 20px rgba(0, 255, 195, 0.12);
+    }
+
+    .btn-rules-audio-off {
+      width: 100%;
+      border-color: rgba(255, 59, 92, 0.42);
+      color: var(--danger);
+      background: rgba(255, 59, 92, 0.1);
+      box-shadow: 0 0 18px rgba(255, 59, 92, 0.14);
+    }
+
+    .btn-rules-audio-off:hover:not(:disabled) {
+      box-shadow: 0 0 30px rgba(255, 59, 92, 0.28);
+      border-color: rgba(255, 59, 92, 0.55);
+    }
+
+    .rules-inner {
+      max-width: 42rem;
+      margin: 0 auto;
+    }
+
+    .rules-title-main {
+      margin-bottom: 1rem;
+    }
+
+    .rules-prose {
+      max-width: 38rem;
+      margin: 0 auto 1.25rem;
+    }
+
+    .rules-prose p {
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: rgba(232, 234, 240, 0.92);
+    }
+
+    .kbd-inline {
+      display: inline-block;
+      padding: 0.08rem 0.32rem;
+      font-size: 0.8em;
+      font-family: var(--font-mono);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--accent);
+    }
+
+    .rules-payoff-wrap {
+      padding: 1rem 1rem 1.1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+    }
+
+    .rules-table-title {
+      font-family: var(--font-display);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 0.75rem;
+      font-weight: 700;
+    }
+
+    .rules-payoff {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rules-payoff th,
+    .rules-payoff td {
+      padding: 0.5rem 0.45rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .rules-payoff thead th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .rules-payoff tbody th[scope="row"] {
+      text-align: left;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .rules-payoff tbody td {
+      color: var(--text);
+    }
+
+    .rules-table-note {
+      margin: 0.65rem 0 0;
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .rules-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: stretch;
+    }
+
+    .rules-actions .btn {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .btn-sound-toggle {
+      flex-shrink: 0;
+      align-self: center;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-sound-toggle:hover {
+      color: var(--accent);
+      border-color: rgba(0, 255, 195, 0.35);
+      background: rgba(0, 255, 195, 0.06);
+    }
+
+    .btn-sound-toggle.sound-on {
+      color: var(--accent);
+      border-color: rgba(0, 255, 195, 0.4);
+    }
+
     @media (max-width: 768px) {
       .screen-inner {
         padding:
@@ -1032,6 +1185,18 @@
         font-size: 0.82rem;
         overflow-wrap: anywhere;
         word-break: break-word;
+      }
+
+      .rules-inner {
+        max-height: min(78dvh, calc(100dvh - 4.5rem));
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .rules-payoff th,
+      .rules-payoff td {
+        font-size: 0.72rem;
+        padding: 0.4rem 0.3rem;
       }
     }
 
@@ -1458,7 +1623,51 @@
           <input type="range" id="rounds-range" min="5" max="200" value="50" />
           <span class="round-val" id="rounds-val">50</span>
         </div>
+        <button type="button" class="btn btn-ghost" id="btn-to-rules">READ THE BRIEFING</button>
         <button type="button" id="btn-begin" class="btn btn-primary" disabled>BEGIN INTERROGATION</button>
+      </div>
+    </section>
+
+    <section id="screen-rules" class="screen glass" aria-label="Field briefing">
+      <div class="screen-inner rules-inner">
+        <p class="sub">Archive corridor // PD Ω</p>
+        <h1 class="glitch rules-title-main">FIELD BRIEFING</h1>
+        <div class="rules-prose">
+          <p>They bring you to a room where the air tastes like tape and old light. On one wall, glass that shows both directions at once. You cannot see who stands beyond it until the instant locks, and then the truth is already carved into the record.</p>
+          <p>Each round is a single beat inside that silence. You offer an open palm, or you do not. They do the same, or they do not. No one watches the other choice until the doors close. That is the law of this room.</p>
+          <p>If both of you reach, the ledger writes three for you and three for them, a modest peace that bruises no one. If you reach and they refuse, you swallow nothing while they take five. If you refuse and they reach, the ledger flips and the wound is yours alone. If both refuse, you split the cold floor: one for you and one for them, steel answering steel.</p>
+          <p>Fifteen files wait in the rack behind the mirror. Each mark is a different habit of mind. Some forgive. Some punish forever. Some throw dice and grin at the ceiling. Choose who sits across from you before you lay your hand on the plate.</p>
+          <p>You will play as many rounds as the slider grants. Keys <kbd class="kbd-inline">C</kbd> and <kbd class="kbd-inline">D</kbd> repeat the two gestures from the keyboard. If you leave and return, this terminal may ask to reopen your last session. When the last round ends, you may open a ledger that asks how other strategies would have scored against the same chain of moves from the far side.</p>
+        </div>
+        <div class="rules-payoff-wrap glass">
+          <h2 class="rules-table-title">THE LEDGER IN NUMBERS</h2>
+          <table class="rules-payoff">
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">They cooperate</th>
+                <th scope="col">They defect</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">You cooperate</th>
+                <td>3 / 3</td>
+                <td>0 / 5</td>
+              </tr>
+              <tr>
+                <th scope="row">You defect</th>
+                <td>5 / 0</td>
+                <td>1 / 1</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="rules-table-note">In each cell: your points, then theirs.</p>
+        </div>
+        <div class="rules-actions">
+          <button type="button" class="btn btn-primary" id="btn-rules-audio" aria-pressed="false">ENABLE AUDIO</button>
+          <button type="button" class="btn" id="btn-from-rules">BACK TO SELECTION</button>
+        </div>
       </div>
     </section>
 
@@ -1487,6 +1696,7 @@
             <div class="play-progress-wrap">
               <div class="progress-outer progress-outer--full"><div class="progress-inner" id="play-progress"></div></div>
             </div>
+            <button type="button" class="btn-sound-toggle" id="btn-sound-toggle" aria-pressed="false" title="Toggle audio">AUDIO OFF</button>
           </div>
           <div class="scoreboard">
             <div class="score-block">
@@ -1875,10 +2085,166 @@
 
   function $(id) { return document.getElementById(id); }
 
+  var SOUND_LS = "prisonersDilemmaSoundMuted";
+
+  var AudioUX = (function () {
+    var ctx = null;
+    var muted = false;
+
+    try {
+      var s = localStorage.getItem(SOUND_LS);
+      if (s === "1") muted = true;
+      else if (s === "0") muted = false;
+      else {
+        try {
+          muted = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        } catch (e2) {
+          muted = false;
+        }
+      }
+    } catch (e) {
+      muted = false;
+    }
+
+    function ensureCtx() {
+      if (ctx) return ctx;
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+      } catch (e) {
+        return null;
+      }
+      return ctx;
+    }
+
+    function unlock() {
+      try {
+        var c = ensureCtx();
+        if (c && c.state === "suspended") c.resume();
+      } catch (e) {}
+    }
+
+    function setMuted(m) {
+      muted = !!m;
+      try {
+        localStorage.setItem(SOUND_LS, muted ? "1" : "0");
+      } catch (e) {}
+      syncUi();
+    }
+
+    function toggle() {
+      setMuted(!muted);
+    }
+
+    function syncUi() {
+      var on = !muted;
+      var btnPlay = $("btn-sound-toggle");
+      if (btnPlay) {
+        btnPlay.textContent = on ? "AUDIO ON" : "AUDIO OFF";
+        btnPlay.setAttribute("aria-pressed", on ? "true" : "false");
+        btnPlay.setAttribute("aria-label", on ? "Sound on, press to mute" : "Sound off, press to enable");
+        btnPlay.classList.toggle("sound-on", on);
+      }
+      var btnRules = $("btn-rules-audio");
+      if (btnRules) {
+        btnRules.textContent = on ? "DISABLE AUDIO" : "ENABLE AUDIO";
+        btnRules.setAttribute("aria-pressed", on ? "true" : "false");
+        btnRules.setAttribute(
+          "aria-label",
+          on ? "Audio is on, press to silence the room" : "Audio is off, press to enable cues"
+        );
+        btnRules.classList.toggle("btn-primary", !on);
+        btnRules.classList.toggle("btn-rules-audio-off", on);
+      }
+    }
+
+    function scheduleTone(freq, dur, type, vol, when) {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      var t0 = when != null ? when : c.currentTime;
+      var osc = c.createOscillator();
+      var g = c.createGain();
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(vol || 0.06, 0.0002), t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g);
+      g.connect(c.destination);
+      try {
+        osc.start(t0);
+        osc.stop(t0 + dur + 0.04);
+      } catch (e) {}
+    }
+
+    function playTick() {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      scheduleTone(880, 0.045, "sine", 0.038, c.currentTime);
+    }
+
+    function playResolve(pm, om) {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      var t = c.currentTime;
+      if (pm === "cooperate" && om === "cooperate") {
+        scheduleTone(523.25, 0.11, "sine", 0.07, t);
+        scheduleTone(659.25, 0.09, "sine", 0.055, t + 0.075);
+      } else if (pm === "defect" && om === "defect") {
+        scheduleTone(95, 0.16, "sawtooth", 0.045, t);
+      } else {
+        scheduleTone(392, 0.1, "triangle", 0.055, t);
+      }
+    }
+
+    function playBegin() {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      var t = c.currentTime;
+      scheduleTone(185, 0.075, "sine", 0.055, t);
+      scheduleTone(277, 0.09, "sine", 0.048, t + 0.065);
+    }
+
+    function playEnd(kind) {
+      if (muted) return;
+      var c = ensureCtx();
+      if (!c) return;
+      var t = c.currentTime;
+      if (kind === "win") {
+        scheduleTone(392, 0.11, "sine", 0.075, t);
+        scheduleTone(523.25, 0.13, "sine", 0.065, t + 0.09);
+        scheduleTone(659.25, 0.16, "sine", 0.055, t + 0.19);
+      } else if (kind === "lose") {
+        scheduleTone(200, 0.18, "sawtooth", 0.052, t);
+        scheduleTone(155, 0.22, "sawtooth", 0.042, t + 0.14);
+      } else {
+        scheduleTone(311.13, 0.12, "triangle", 0.06, t);
+        scheduleTone(311.13, 0.12, "triangle", 0.058, t + 0.14);
+      }
+    }
+
+    return {
+      unlock: unlock,
+      setMuted: setMuted,
+      toggle: toggle,
+      syncUi: syncUi,
+      playTick: playTick,
+      playResolve: playResolve,
+      playBegin: playBegin,
+      playEnd: playEnd
+    };
+  })();
+
   function showScreen(id) {
     document.querySelectorAll(".screen").forEach(function (el) {
       el.classList.toggle("active", el.id === id);
     });
+    if (id === "screen-rules") AudioUX.syncUi();
   }
 
   function buildStrategyCards() {
@@ -2043,9 +2409,11 @@
     if (roundInProgress) return;
     if (rounds.length >= totalRounds) return;
 
+    AudioUX.unlock();
     roundInProgress = true;
     setPlayButtonsDisabled(true);
     $("calc-indicator").style.display = "block";
+    AudioUX.playTick();
     $("opp-move-el").textContent = "";
     $("opp-move-el").className = "opp-move";
 
@@ -2070,6 +2438,8 @@
       oppScore += sc.opponentPoints;
 
       $("calc-indicator").style.display = "none";
+
+      AudioUX.playResolve(playerMove, oppMove);
 
       var om = $("opp-move-el");
       om.classList.remove("reveal", "coop", "def");
@@ -2164,6 +2534,9 @@
 
     $("match-analysis").textContent = MATCH_ANALYSIS[currentStrategy.name] || "";
 
+    var endKind = playerScore > oppScore ? "win" : playerScore < oppScore ? "lose" : "tie";
+    AudioUX.playEnd(endKind);
+
     showScreen("screen-end");
     saveSession();
   }
@@ -2222,6 +2595,8 @@
 
   function beginInterrogation() {
     if (selectedIndex < 0) return;
+    AudioUX.unlock();
+    AudioUX.playBegin();
     currentStrategy = STRATEGIES[selectedIndex];
     totalRounds = parseInt($("rounds-range").value, 10);
     resetGameState();
@@ -2275,6 +2650,23 @@
     $("rounds-val").textContent = this.value;
   });
 
+  $("btn-to-rules").addEventListener("click", function () {
+    AudioUX.unlock();
+    showScreen("screen-rules");
+  });
+  $("btn-from-rules").addEventListener("click", function () {
+    AudioUX.unlock();
+    showScreen("screen-select");
+  });
+  $("btn-rules-audio").addEventListener("click", function () {
+    AudioUX.unlock();
+    AudioUX.toggle();
+  });
+  $("btn-sound-toggle").addEventListener("click", function () {
+    AudioUX.unlock();
+    AudioUX.toggle();
+  });
+
   $("btn-begin").addEventListener("click", beginInterrogation);
   $("btn-coop").addEventListener("click", function () { playRound("cooperate"); });
   $("btn-def").addEventListener("click", function () { playRound("defect"); });
@@ -2309,6 +2701,7 @@
   });
 
   buildStrategyCards();
+  AudioUX.syncUi();
 
   try {
     var raw = sessionStorage.getItem(STORAGE_KEY);
