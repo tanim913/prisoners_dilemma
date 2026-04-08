@@ -1830,7 +1830,7 @@
           </div>
           <div class="rounds-row">
             <label for="rounds-range">Rounds</label>
-            <input type="range" id="rounds-range" min="5" max="200" value="50" />
+            <input type="range" id="rounds-range" min="6" max="200" step="2" value="50" />
             <span class="round-val" id="rounds-val">50</span>
           </div>
         </div>
@@ -1847,7 +1847,7 @@
           <p>Each round is a single beat inside that silence. You offer an open palm, or you do not. They do the same, or they do not. No one watches the other choice until the doors close. That is the law of this room.</p>
           <p>If both of you reach, the ledger writes three for you and three for them, a modest peace that bruises no one. If you reach and they refuse, you swallow nothing while they take five. If you refuse and they reach, the ledger flips and the wound is yours alone. If both refuse, you split the cold floor: one for you and one for them, steel answering steel.</p>
           <p>Twenty five files wait in the rack behind the mirror. Each mark is a different habit of mind. Some forgive. Some punish forever. Some throw dice and grin at the ceiling. Choose who sits across from you before you lay your hand on the plate.</p>
-          <p>You will play as many rounds as the slider grants. Keys <kbd class="kbd-inline">C</kbd> and <kbd class="kbd-inline">D</kbd> repeat the two gestures from the keyboard. If you leave and return, this terminal may ask to reopen your last session. When the last round ends, you may open a ledger that asks how other strategies would have scored against the same chain of moves from the far side.</p>
+          <p>You will play as many rounds as the slider grants — <strong>even counts only</strong> (6 through 200). Keys <kbd class="kbd-inline">C</kbd> and <kbd class="kbd-inline">D</kbd> repeat the two gestures from the keyboard. If you leave and return, this terminal may ask to reopen your last session. When the last round ends, you may open a ledger that asks how other strategies would have scored against the same chain of moves from the far side.</p>
         </div>
         <div class="rules-payoff-wrap glass">
           <h2 class="rules-table-title">THE LEDGER IN NUMBERS</h2>
@@ -2476,6 +2476,50 @@
 
   function $(id) { return document.getElementById(id); }
 
+  var ROUND_MIN = 6;
+  var ROUND_MAX = 200;
+
+  function normalizeRoundsChoice(n) {
+    var x = parseInt(n, 10);
+    if (!isFinite(x)) x = 50;
+    x = Math.max(ROUND_MIN, Math.min(ROUND_MAX, x));
+    if (x % 2 === 1) x -= 1;
+    if (x < ROUND_MIN) x = ROUND_MIN;
+    return x;
+  }
+
+  function roundsForResume(savedTotal, playedCount) {
+    var t = parseInt(savedTotal, 10);
+    if (!isFinite(t)) t = 50;
+    t = Math.max(5, Math.min(ROUND_MAX, t));
+    var p = playedCount || 0;
+    if (p >= t) {
+      return t;
+    }
+    var e = normalizeRoundsChoice(t);
+    if (e < t) e += 2;
+    if (e > ROUND_MAX) e = ROUND_MAX;
+    return e;
+  }
+
+  function sliderValueForDisplay(totalRounds) {
+    var t = parseInt(totalRounds, 10);
+    if (!isFinite(t)) t = ROUND_MIN;
+    t = Math.min(ROUND_MAX, Math.max(5, t));
+    if (t < ROUND_MIN) t = ROUND_MIN;
+    if (t % 2 === 1) t += 1;
+    if (t > ROUND_MAX) t = ROUND_MAX;
+    return String(t);
+  }
+
+  function syncRoundsFromSlider() {
+    var el = $("rounds-range");
+    if (!el) return;
+    var v = normalizeRoundsChoice(el.value);
+    el.value = String(v);
+    $("rounds-val").textContent = String(v);
+  }
+
   var SOUND_LS = "prisonersDilemmaSoundMuted";
 
   var AudioUX = (function () {
@@ -3022,6 +3066,7 @@
     AudioUX.unlock();
     AudioUX.playBegin();
     currentStrategy = STRATEGIES[selectedIndex];
+    syncRoundsFromSlider();
     totalRounds = parseInt($("rounds-range").value, 10);
     resetGameState();
     gradualInst.reset();
@@ -3036,7 +3081,7 @@
     if (idx < 0) return;
     selectedIndex = idx;
     currentStrategy = STRATEGIES[idx];
-    totalRounds = data.totalRounds;
+    totalRounds = roundsForResume(data.totalRounds, (data.rounds || []).length);
     rounds = data.rounds || [];
     playerScore = rounds.reduce(function (s, r) { return s + r.playerPoints; }, 0);
     oppScore = rounds.reduce(function (s, r) { return s + r.opponentPoints; }, 0);
@@ -3047,8 +3092,8 @@
       c.classList.toggle("selected", i === idx);
     });
     syncBeginButtons();
-    $("rounds-range").value = String(totalRounds);
-    $("rounds-val").textContent = String(totalRounds);
+    $("rounds-range").value = sliderValueForDisplay(totalRounds);
+    $("rounds-val").textContent = $("rounds-range").value;
 
     if (rounds.length >= totalRounds) {
       showEndScreen();
@@ -3074,7 +3119,7 @@
   }
 
   $("rounds-range").addEventListener("input", function () {
-    $("rounds-val").textContent = this.value;
+    syncRoundsFromSlider();
   });
 
   $("btn-to-rules").addEventListener("click", function () {
@@ -3130,6 +3175,7 @@
   });
 
   buildStrategyCards();
+  syncRoundsFromSlider();
   AudioUX.syncUi();
 
   try {
