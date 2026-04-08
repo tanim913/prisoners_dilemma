@@ -80,6 +80,10 @@ prisoners_dilemma_webapp/
 └── README.md
 ```
 
+## Credits
+
+© 2026 [Azizullah Tanim](https://github.com/tanim913/). All rights reserved.
+
 ## License
 
 If you publish the repo, add a `LICENSE` file with your preferred terms. The app is original UI/logic in this project unless you state otherwise.
