@@ -53,7 +53,7 @@ export async function updateProfile(id, fields) {
 }
 
 const rpc = async (fn, args) => check(await (await sb()).rpc(fn, args));
-export const createInvite = (length) => rpc("create_invite", { p_length: length });
+export const createInvite = (length, noise) => rpc("create_invite", { p_length: length, p_noise: noise });
 export const joinInvite = (code) => rpc("join_invite", { p_code: code });
 export const joinQueue = () => rpc("join_queue");
 export const submitMove = (id, move) => rpc("submit_move", { p_match: id, p_move: move });
@@ -67,6 +67,11 @@ export async function match(id) {
 
 export async function moves(id) {
   return check(await (await sb()).from("moves").select("round,seat,move").eq("match_id", id).order("round"));
+}
+
+// Only your own slips come back; the opponent's are hidden by RLS.
+export async function slips(id) {
+  return check(await (await sb()).from("slips").select("round").eq("match_id", id));
 }
 
 export async function messages(id) {
@@ -90,7 +95,7 @@ export async function watch(id, { onMatch, onMessage }) {
 export async function history() {
   const c = await sb();
   const online = check(await c.from("matches")
-    .select("id,player_a,player_b,status,score_a,score_b,abandoned_by,created_at,finished_at,moves(round,seat,move)")
+    .select("id,player_a,player_b,status,score_a,score_b,abandoned_by,created_at,finished_at,moves(round,seat,move),slips(round)")
     .in("status", ["done", "abandoned"]).order("created_at", { ascending: false }).limit(60));
   const solo = check(await c.from("solo_games").select("*").order("created_at", { ascending: false }).limit(150));
   return { online, solo };

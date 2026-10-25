@@ -10,14 +10,26 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const icon = (id, cls = "") => `<svg class="${cls}" aria-hidden="true"><use href="#${id}" /></svg>`;
 const ornament = `<div class="rule-orn" aria-hidden="true"><svg><use href="#i-hedera" /></svg></div>`;
 const MOVE_WORD = { C: "cooperated", D: "defected" };
+const MOVE_VERB = { C: "cooperate", D: "defect" };
 
 const LENGTHS = {
-  short: { label: "Short", min: 6, max: 10 },
   standard: { label: "Standard", min: 10, max: 16 },
   long: { label: "Long", min: 20, max: 30 },
   axelrod: { label: "Axelrod's 200", min: 200, max: 200 }
 };
 const rangeText = (min, max) => (min === max ? `${max}` : `${min} to ${max}`);
+
+// Shaky hands: with noise on, 1 move in 20 comes out the other way.
+const shake = (move, noise) => (noise && Math.random() < 0.05 ? (move === "C" ? "D" : "C") : move);
+const shakyChoice = `<div class="choices"><label><input type="checkbox" name="noise" /><span>Shaky hands<small>1 move in 20 comes out the other way</small></span></label></div>`;
+
+// A match is judged against the table, not the opponent: steady cooperation pays 3 a round to both.
+const grade = (pts, n) => (pts / n >= 2.5 ? "prospered" : pts / n >= 1.5 ? "got by" : "starved");
+function verdictHead(a, b, n, them) {
+  const [ga, gb] = [grade(a, n), grade(b, n)];
+  return ga === gb ? `You both ${ga}` : `You ${ga}. ${them} ${gb}`;
+}
+const tally = (a, b, n) => `<p>${a} to ${b} over ${n} rounds. Cooperating every round would have paid ${3 * n} each.</p>`;
 
 let auth = { session: null, user: null, profile: null };
 let cleanup = () => {};
@@ -56,9 +68,9 @@ async function fillStills(root) {
 
 function tilesHTML(rounds, side, freshFrom = Infinity, pendingMine = false) {
   const tiles = rounds.map((r, i) => {
-    const m = r[side];
-    const label = `Round ${i + 1}: ${side === "me" ? "you" : "they"} ${MOVE_WORD[m]}`;
-    return `<span class="tile ${m}${i >= freshFrom ? " fresh" : ""}" role="img" aria-label="${label}"></span>`;
+    const m = r[side], slip = side === "me" && r.slip;
+    const label = `Round ${i + 1}: ${side === "me" ? "you" : "they"} ${MOVE_WORD[m]}${slip ? ", your hand slipped" : ""}`;
+    return `<span class="tile ${m}${slip ? " slip" : ""}${i >= freshFrom ? " fresh" : ""}" role="img" aria-label="${label}"></span>`;
   });
   if (pendingMine) tiles.push(`<span class="tile pending" role="img" aria-label="Your move is sealed"></span>`);
   return tiles.join("");
@@ -128,6 +140,7 @@ function home() {
       <p class="lede">Each character is a rule for playing the game, taken from fifty years of game theory. Play them, play a friend, and find out which one you are.</p>
       <ol>
         <li><a href="#/characters"><strong>Play a character</strong><span>Pick one of the 25 and play it here, no sign-in needed.</span>${icon("i-manicule")}</a></li>
+        <li><a href="#/gauntlet"><strong>The gauntlet</strong><span>Five characters in a row, one total, ranked against all 25.</span>${icon("i-manicule")}</a></li>
         <li><a href="#/online"><strong>Play a person</strong><span>Invite a friend or meet a stranger online, and talk while you play.</span>${icon("i-manicule")}</a></li>
         <li><a href="#/me"><strong>Your emblem</strong><span>Your record, and the character you play most like.</span>${icon("i-manicule")}</a></li>
         <li><a href="#/ideas"><strong>The ideas</strong><span>Hobbes, Rousseau, Kant, Axelrod and others, in short chapters.</span>${icon("i-manicule")}</a></li>
@@ -198,9 +211,10 @@ function character(key) {
       ${ornament}
       <form class="setup" id="setup">
         <fieldset><legend>How long a match</legend><div class="choices">
-          ${Object.entries(LENGTHS).map(([k, l], i) => `<label><input type="radio" name="len" value="${k}" ${i === 1 ? "checked" : ""} /><span>${l.label}<small>${rangeText(l.min, l.max)} rounds</small></span></label>`).join("")}
+          ${Object.entries(LENGTHS).map(([k, l]) => `<label><input type="radio" name="len" value="${k}" ${k === "standard" ? "checked" : ""} /><span>${l.label}<small>${rangeText(l.min, l.max)} rounds</small></span></label>`).join("")}
         </div></fieldset>
         <p class="soft">With a range, the true length stays hidden until the match ends, so there is no last round to plan for. Axelrod's first tournament ran 200 rounds, and everyone knew it.</p>
+        ${shakyChoice}
         <div class="btn-row"><button class="btn btn-lapis" type="submit">Play ${esc(s.name)}</button><a href="#/characters">Back to all characters</a></div>
       </form>
     </section>
@@ -209,9 +223,8 @@ function character(key) {
   livePicture(app.querySelector("#pic"), key, `Woodcut picture for ${s.name}`).then((p) => (pic = p));
   app.querySelector("#setup").addEventListener("submit", (e) => {
     e.preventDefault();
-    const l = LENGTHS[new FormData(e.target).get("len")];
-    const total = l.min + Math.floor(Math.random() * (l.max - l.min + 1));
-    saveSolo({ key, min: l.min, max: l.max, total, rounds: [] });
+    const f = new FormData(e.target), l = LENGTHS[f.get("len")];
+    saveSolo({ key, min: l.min, max: l.max, total: drawLength(l), noise: f.has("noise"), rounds: [] });
     location.hash = `#/play/${key}`;
   });
   return () => pic?.dispose();
@@ -219,6 +232,7 @@ function character(key) {
 
 // ---------------------------------------------------------------- solo game
 
+const drawLength = (l) => l.min + Math.floor(Math.random() * (l.max - l.min + 1));
 const SOLO = "pd.solo";
 const saveSolo = (g) => { try { sessionStorage.setItem(SOLO, JSON.stringify(g)); } catch (e) {} };
 function loadSolo(key) {
@@ -230,20 +244,62 @@ function loadSolo(key) {
 }
 
 // What a character would have scored against this opponent over the same length, averaged over runs.
-function wouldHaveScored(opp, total) {
+function wouldHaveScored(opp, total, noise) {
   return STRATEGIES.map((s) => {
     const runs = 12;
     let sum = 0;
     for (let k = 0; k < runs; k++) {
       const h = [];
       for (let i = 0; i < total; i++) {
-        const a = decide(s, h), b = decide(opp, h.map((x) => ({ me: x.them, them: x.me })));
+        const a = shake(decide(s, h), noise), b = shake(decide(opp, h.map((x) => ({ me: x.them, them: x.me }))), noise);
         h.push({ me: a, them: b });
       }
       sum += totals(h)[0];
     }
     return { name: s.name, key: s.key, score: Math.round(sum / runs) };
   });
+}
+
+// ---------------------------------------------------------------- the gauntlet
+
+const RUN = 5;
+
+function gauntlet() {
+  setTitle("The gauntlet");
+  app.innerHTML = `<div class="screen"><article class="leaf framed prose" style="margin:0 auto">
+    <h1>The gauntlet</h1>
+    ${ornament}
+    <p>Five characters drawn at random, one after another, each for 10 to 16 rounds. Only your total counts.</p>
+    <p>Beating a character head to head is easy: defect first and you can't lose a match. But the hard cases hit back, and they get the rest of the match to do it. At the end your total is set beside what each of the 25 characters would have scored against the same five.</p>
+    <p>Tit for Tat never beat a single opponent in Axelrod's tournament, and it still won.</p>
+    <form id="run" class="stack">${shakyChoice}<div class="btn-row"><button class="btn btn-lapis" type="submit">Draw five characters</button></div></form>
+  </article></div>`;
+  app.querySelector("#run").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const keys = STRATEGIES.map((x) => x.key).sort(() => Math.random() - 0.5).slice(0, RUN);
+    const run = { keys, totals: keys.map(() => drawLength(LENGTHS.standard)), scores: [] };
+    startLeg(run, new FormData(e.target).has("noise"));
+  });
+  return () => {};
+}
+
+function startLeg(run, noise) {
+  const i = run.scores.length, l = LENGTHS.standard;
+  saveSolo({ key: run.keys[i], min: l.min, max: l.max, total: run.totals[i], noise, rounds: [], run });
+  location.hash = `#/play/${run.keys[i]}`;
+}
+
+function runResult(run, noise) {
+  const mine = run.scores.reduce((t, x) => t + x, 0);
+  const n = run.totals.reduce((t, x) => t + x, 0);
+  const board = STRATEGIES.map((s, k) => ({
+    name: s.name, key: s.key,
+    score: run.keys.reduce((t, opp, i) => t + wouldHaveScored(byKey[opp], run.totals[i], noise)[k].score, 0)
+  })).concat({ name: "You", key: "you", score: mine }).sort((x, y) => y.score - x.score);
+  const place = board.findIndex((r) => r.key === "you") + 1;
+  return `<h3>The gauntlet is over. You ${grade(mine, n)}</h3>
+    <p>${mine} points from ${n} rounds against ${run.keys.map((k) => esc(byKey[k].name)).join(", ")}. Next to every character playing the same five, you place ${place} of 26.</p>
+    <ol class="ranking">${board.slice(0, 8).map((r) => `<li class="${r.key === "you" ? "you" : ""}"><span>${esc(r.name)}</span><span class="num">${r.score}</span></li>`).join("")}</ol>`;
 }
 
 function solo(key) {
@@ -263,6 +319,8 @@ function solo(key) {
       </div>
       <div id="record"></div>
       ${legend}
+      ${g.run ? `<p class="soft">The gauntlet, character ${g.run.scores.length + (g.saved ? 0 : 1)} of ${RUN}.</p>` : ""}
+      ${g.noise ? `<p class="soft">Shaky hands: 1 move in 20 comes out the other way, yours and theirs.</p>` : ""}
       <p class="status-line" id="status" role="status"></p>
       <div id="controls"></div>
     </section>
@@ -289,19 +347,20 @@ function solo(key) {
       <p class="kbd">Keys: <kbd>C</kbd> cooperate, <kbd>D</kbd> defect</p>`;
   }
 
-  function play(me) {
+  function play(meant) {
     if (busy || g.rounds.length >= g.total) return;
     busy = true;
     audio.tick();
     app.querySelectorAll("[data-move]").forEach((b) => (b.disabled = true));
     $("status").textContent = `${s.name} is choosing.`;
     timer = setTimeout(() => {
-      const them = decide(s, g.rounds.map((r) => ({ me: r.them, them: r.me })));
-      g.rounds.push({ me, them });
+      const them = shake(decide(s, g.rounds.map((r) => ({ me: r.them, them: r.me }))), g.noise);
+      const me = shake(meant, g.noise);
+      g.rounds.push(me === meant ? { me, them } : { me, them, slip: true });
       saveSolo(g);
       pic?.react(me);
       audio.reveal(me, them);
-      $("status").textContent = `You ${MOVE_WORD[me]}. ${s.name} ${MOVE_WORD[them]}.`;
+      $("status").textContent = `${me === meant ? "" : `Your hand slipped: you meant to ${MOVE_VERB[meant]}. `}You ${MOVE_WORD[me]}. ${s.name} ${MOVE_WORD[them]}.`;
       busy = false;
       draw(g.rounds.length - 1);
     }, 550 + Math.random() * 250);
@@ -309,31 +368,45 @@ function solo(key) {
 
   function finish() {
     const [a, b] = totals(g.rounds);
-    const head = a > b ? `You came out ahead, ${a} to ${b}` : a < b ? `${s.name} came out ahead, ${b} to ${a}` : `Level, ${a} each`;
-    const ranking = wouldHaveScored(s, g.total).concat({ name: "You", key: "you", score: a })
-      .sort((x, y) => y.score - x.score);
-    const place = ranking.findIndex((r) => r.key === "you") + 1;
-    audio.finish(a >= b);
+    if (!g.saved) g.run?.scores.push(a);
+    const run = g.run, last = run && run.scores.length >= RUN;
+    audio.finish(grade(a, g.total) !== "starved");
+    let ranking = "";
+    if (!run) {
+      const board = wouldHaveScored(s, g.total, g.noise).concat({ name: "You", key: "you", score: a }).sort((x, y) => y.score - x.score);
+      const place = board.findIndex((r) => r.key === "you") + 1;
+      ranking = `<p>Against ${esc(s.name)} over ${g.total} rounds, your ${a} points would place you ${place} of 26 next to every character playing the same match.</p>
+      <ol class="ranking">${board.slice(0, 6).map((r) => `<li class="${r.key === "you" ? "you" : ""}"><span>${esc(r.name)}</span><span class="num">${r.score}</span></li>`).join("")}</ol>`;
+    }
+    const buttons = !run
+      ? `<button class="btn btn-lapis" data-act="again">Play again</button><a class="btn btn-quiet" href="#/characters">Choose another</a>`
+      : last
+        ? `<a class="btn btn-lapis" href="#/gauntlet">Run another gauntlet</a>`
+        : `<button class="btn btn-lapis" data-act="next">Next: ${esc(byKey[run.keys[run.scores.length]].name)}</button>`;
     $("controls").innerHTML = `<div class="verdict">
-      <h3>${head}</h3>
+      <h3>${esc(verdictHead(a, b, g.total, s.name))}</h3>
+      ${tally(a, b, g.total)}
       <p>${esc(s.after)}</p>
       ${lookalike(g.rounds)}
-      <p>Against ${esc(s.name)} over ${g.total} rounds, your ${a} points would place you ${place} of 26 next to every character playing the same match.</p>
-      <ol class="ranking">${ranking.slice(0, 6).map((r) => `<li class="${r.key === "you" ? "you" : ""}"><span>${esc(r.name)}</span><span class="num">${r.score}</span></li>`).join("")}</ol>
+      ${ranking}
+      ${last ? runResult(run, g.noise) : ""}
       <p class="soft" id="saved"></p>
-      <div class="btn-row"><button class="btn btn-lapis" data-act="again">Play again</button><a class="btn btn-quiet" href="#/characters">Choose another</a></div>
+      <div class="btn-row">${buttons}</div>
     </div>`;
-    $("controls").querySelector('[data-act="again"]').addEventListener("click", () => {
-      g.total = g.min + Math.floor(Math.random() * (g.max - g.min + 1));
+    $("controls").querySelector('[data-act="again"]')?.addEventListener("click", () => {
+      g.total = drawLength(g);
       g.rounds = [];
+      g.saved = false;
       saveSolo(g);
       draw();
     });
+    $("controls").querySelector('[data-act="next"]')?.addEventListener("click", () => startLeg(run, g.noise));
     if (!g.saved) {
       g.saved = true;
       saveSolo(g);
       if (auth.user) {
-        net.saveSolo(key, g.rounds.map((r) => r.me).join(""), g.rounds.map((r) => r.them).join(""))
+        // A slipped move is saved in lower case, so the emblem can leave it out.
+        net.saveSolo(key, g.rounds.map((r) => (r.slip ? r.me.toLowerCase() : r.me)).join(""), g.rounds.map((r) => r.them).join(""))
           .then(() => ($("saved").textContent = "Saved to your record."))
           .catch((e) => ($("saved").textContent = `Not saved: ${e.message}`));
       } else if (net.configured()) {
@@ -378,8 +451,9 @@ function lobby() {
         <h2 id="inv">Invite a friend</h2>
         <div id="invite">
           <fieldset><legend>How long a match</legend><div class="choices">
-            ${["short", "standard", "long"].map((k) => `<label><input type="radio" name="len" value="${k}" ${k === "standard" ? "checked" : ""} /><span>${LENGTHS[k].label}<small>${rangeText(LENGTHS[k].min, LENGTHS[k].max)} rounds</small></span></label>`).join("")}
+            ${["standard", "long"].map((k) => `<label><input type="radio" name="len" value="${k}" ${k === "standard" ? "checked" : ""} /><span>${LENGTHS[k].label}<small>${rangeText(LENGTHS[k].min, LENGTHS[k].max)} rounds</small></span></label>`).join("")}
           </div></fieldset>
+          ${shakyChoice}
           <p><button class="btn btn-lapis" data-act="invite">Make an invite</button></p>
         </div>
       </section>
@@ -415,7 +489,7 @@ function lobby() {
     try {
       if (act === "invite") {
         const len = app.querySelector('input[name="len"]:checked').value;
-        const m = await net.createInvite(len);
+        const m = await net.createInvite(len, app.querySelector('input[name="noise"]').checked);
         const link = `${location.origin}${location.pathname}#/join/${m.invite_code}`;
         app.querySelector("#invite").innerHTML = `<p>Send this code or link to your friend. The match starts when they join.</p>
           <p class="code-big">${m.invite_code}</p>
@@ -498,14 +572,15 @@ function match(id) {
   const nameOf = (id) => people[id]?.display_name || "Your opponent";
 
   async function loadMoves() {
-    const rows = await net.moves(id);
+    const [rows, slips] = await Promise.all([net.moves(id), net.slips(id)]);
+    const slipped = new Set(slips.map((x) => x.round));
     const byRound = {};
     rows.forEach((r) => ((byRound[r.round] ??= {})[r.seat] = r.move));
     rounds = [];
     myPending = null;
     Object.keys(byRound).map(Number).sort((a, b) => a - b).forEach((r) => {
       const x = byRound[r];
-      if (x.a && x.b) rounds.push(seat === "a" ? { me: x.a, them: x.b } : { me: x.b, them: x.a });
+      if (x.a && x.b) rounds.push(seat === "a" ? { me: x.a, them: x.b, slip: slipped.has(r) } : { me: x.b, them: x.a, slip: slipped.has(r) });
       else if (x[seat]) myPending = x[seat];
     });
   }
@@ -538,6 +613,7 @@ function match(id) {
         <div class="picture" id="pic"></div>
         <h2><a href="#/p/${other()}">${esc(nameOf(other()))}</a></h2>
         <p class="verse center">${esc(look)}</p>
+        <p class="soft center">${esc(trustText(opp))}</p>
       </section>
       <section class="leaf board" aria-label="The match">
         <div class="score">
@@ -547,6 +623,7 @@ function match(id) {
         </div>
         <div id="record"></div>
         ${legend}
+        ${m.noise ? `<p class="soft">Shaky hands: 1 move in 20 comes out the other way. Only the one whose hand slipped is told.</p>` : ""}
         <p class="status-line" id="status" role="status"></p>
         <div id="controls"></div>
         <section class="margin-notes" aria-labelledby="notes-h">
@@ -631,10 +708,11 @@ function match(id) {
     const quitter = m.abandoned_by;
     let head;
     if (m.status === "abandoned") head = quitter === seat ? "You left the match" : `${nameOf(other())} left the match, so it's yours`;
-    else head = a > b ? `You came out ahead, ${a} to ${b}` : a < b ? `${nameOf(other())} came out ahead, ${b} to ${a}` : `Level, ${a} each`;
+    else head = verdictHead(a, b, rounds.length, nameOf(other()));
     const both = rounds.filter((r) => r.me === "C" && r.them === "C").length;
     box.innerHTML = `<div class="verdict">
       <h3>${esc(head)}</h3>
+      ${m.status === "done" ? tally(a, b, rounds.length) : ""}
       ${rounds.length ? `<p>You both cooperated in ${both} of ${rounds.length} rounds.${rounds.length >= m.round_min && m.status === "done" ? ` The match was set to end after round ${rounds.length}, which neither of you knew.` : ""}</p>` : ""}
       ${lookalike(rounds)}
       <div class="btn-row"><a class="btn btn-lapis" href="#/online">Play again</a><a class="btn btn-quiet" href="#/me">Your emblem</a></div>
@@ -653,9 +731,9 @@ function match(id) {
       const last = rounds[rounds.length - 1];
       pic?.react(last.me);
       audio.reveal(last.me, last.them);
-      app.querySelector("#status").textContent = `You ${MOVE_WORD[last.me]}. ${nameOf(other())} ${MOVE_WORD[last.them]}.`;
+      app.querySelector("#status").textContent = `${last.slip ? `Your hand slipped: you meant to ${MOVE_VERB[last.me === "C" ? "D" : "C"]}. ` : ""}You ${MOVE_WORD[last.me]}. ${nameOf(other())} ${MOVE_WORD[last.them]}.`;
     }
-    if (m.status === "done") audio.finish(totals(rounds)[0] >= totals(rounds)[1]);
+    if (m.status === "done") audio.finish(grade(totals(rounds)[0], rounds.length) !== "starved");
     draw(before);
   }
 
@@ -713,16 +791,21 @@ function match(id) {
 
 // ---------------------------------------------------------------- profile
 
+// Reputation as the server keeps it: how often this player cooperated against people.
+const trustText = (p) => (p?.trust_rounds
+  ? `Cooperated in ${Math.round(p.trust * 100)}% of ${p.trust_rounds} rounds against people`
+  : "Hasn't finished a match against a person yet");
+
 function soloRounds(g) {
-  return [...g.my_moves].map((mv, i) => ({ me: mv, them: g.their_moves[i] }));
+  return [...g.my_moves].map((mv, i) => ({ me: mv.toUpperCase(), them: g.their_moves[i], slip: mv !== mv.toUpperCase() }));
 }
 
 function onlineRounds(row, uid) {
   const byRound = {};
   row.moves.forEach((x) => ((byRound[x.round] ??= {})[x.seat] = x.move));
-  const ab = Object.keys(byRound).map(Number).sort((a, b) => a - b)
-    .map((r) => byRound[r]).filter((x) => x.a && x.b);
-  return fromSide(ab, row.player_a === uid);
+  const slipped = new Set((row.slips || []).map((x) => x.round));
+  const done = Object.keys(byRound).map(Number).sort((a, b) => a - b).filter((r) => byRound[r].a && byRound[r].b);
+  return fromSide(done.map((r) => byRound[r]), row.player_a === uid).map((x, i) => ({ ...x, slip: slipped.has(done[i]) }));
 }
 
 function profile() {
@@ -834,7 +917,7 @@ function otherProfile(id) {
         <p class="verse center">${top ? `Plays most like ${esc(byKey[top.key].name)} (${top.pct}%)` : "Not enough games yet to say how they play."}</p></section>
       <section class="leaf stack"><dl class="stats">
         <div><dt>Games</dt><dd>${p.games_played}</dd></div>
-        <div><dt>Cooperated</dt><dd>${p.coop_rate == null ? "Unknown" : Math.round(p.coop_rate * 100) + "%"}</dd></div></dl>
+        <div><dt>With people</dt><dd>${p.trust_rounds ? Math.round(p.trust * 100) + "% cooperated" : "No matches yet"}</dd></div></dl>
         ${top ? `<ol class="ranking">${f.top.map((t) => `<li><a href="#/c/${t.key}">${esc(byKey[t.key]?.name)}</a><span class="num">${t.pct}%</span></li>`).join("")}</ol>` : ""}
         <p class="soft">Each player's history stays private. Others see only this summary.</p>
         <p><a class="btn" href="#/online">Play someone</a></p></section></div>`;
@@ -885,10 +968,21 @@ function rules() {
       <tr><th scope="row">You defect</th><td><b>5 / 0</b><small>temptation</small></td><td class="dd"><b>1 / 1</b><small>both punished</small></td></tr>
     </table>
     <p>Defecting always pays more in a single round. Cooperating pays more over many rounds, if the other player cooperates too. That tension is the whole game.</p>
+    <h2>How a match is judged</h2>
+    <p>Not by who scored more. Defect first and you can never lose a match head to head, so that question says nothing. A match is judged against the table: 3 points a round is what steady cooperation pays both players.</p>
+    <ul>
+      <li><b>Prospered</b>: 2.5 points a round or more.</li>
+      <li><b>Got by</b>: 1.5 to 2.5.</li>
+      <li><b>Starved</b>: under 1.5. Two players who keep punishing each other end up here, whoever is ahead.</li>
+    </ul>
+    <p>Both players can prosper. Both can starve. For a real contest, run <a href="#/gauntlet">the gauntlet</a>: five characters, one total, ranked against all 25.</p>
     <h2>How long a match runs</h2>
     <p>You're told a range, like 10 to 16 rounds. The real length is drawn in secret and you find out when the match stops. If you knew the last round you'd be tempted to defect on it, and then on the one before. The chapter on <a href="#/ideas/shadow">the shadow of the future</a> explains why.</p>
     <h2>Playing a person</h2>
+    <p>Before the match you see how often your opponent has cooperated against people, counted by the server from every move they've made. Your own number travels with you the same way.</p>
     <p>Your move is sealed on the server the moment you choose. Your opponent can't see it, and nor can anyone reading the network traffic, until they have chosen as well. If someone goes silent for three minutes after you've moved, you can end the match and take the win. Leaving a match counts as a loss.</p>
+    <h2>Shaky hands</h2>
+    <p>Turn it on and 1 move in 20 comes out the other way, for both players. You're told when your own hand slips. Nobody is told when theirs did, so a defection might be a mistake. Whether to forgive it is up to you. Slipped moves don't count toward your emblem. See <a href="#/ideas/noise">noise and forgiveness</a>.</p>
     <h2>Keys</h2>
     <p><kbd>C</kbd> to cooperate and <kbd>D</kbd> to defect, on any match page.</p>
     <p><a class="btn btn-lapis" href="#/characters">Choose a character</a></p>
@@ -914,6 +1008,7 @@ function route() {
     characters: () => catalog(),
     c: () => character(b),
     play: () => solo(b),
+    gauntlet: () => gauntlet(),
     online: () => lobby(),
     join: () => joinCode(b),
     m: () => match(b),

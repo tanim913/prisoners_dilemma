@@ -43,3 +43,11 @@ test("a few rounds is not enough evidence", () => {
 test("fromSide flips the record for player B", () => {
   assert.deepEqual(fromSide([{ a: "C", b: "D" }], false), [{ me: "D", them: "C" }]);
 });
+
+test("a slipped move doesn't count against the player", () => {
+  const g = games((h) => decide(byKey.grim, h), 8, 40);
+  const slipped = g.map((h) => h.map((r, i) => (i === 3 ? { ...r, me: r.me === "C" ? "D" : "C", slip: true } : r)));
+  const fp = fingerprint(slipped);
+  assert.equal(fp.played, 8 * 39);
+  assert.ok(fp.top.some((t) => t.key === "grim"), `top was ${fp.top.map((t) => t.name)}`);
+});

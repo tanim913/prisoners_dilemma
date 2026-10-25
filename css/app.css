@@ -308,6 +308,7 @@ legend { font-variant: small-caps; letter-spacing: 0.05em; color: var(--ink-soft
     radial-gradient(circle at 35% 40%, var(--wash) 0 var(--wash-r), var(--paper) var(--wash-r));
 }
 .tile.pending { border-style: dashed; }
+.tile.slip { outline: 2px dotted var(--ochre); outline-offset: 1px; }
 .tile.fresh { animation: wash 0.9s var(--ease-out) both; }
 @keyframes wash { from { --wash-r: 0%; } to { --wash-r: 150%; } }
 .record.mini .tile { width: 0.7rem; height: 0.7rem; border-width: 1px; }

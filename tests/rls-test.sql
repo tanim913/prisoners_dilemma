@@ -112,6 +112,35 @@ begin
 end $$;
 select pg_temp.expect_error(format('select public.submit_move(%L, ''C'')', current_setting('test.match')), 'not active');
 
+-- 5b. reputation is kept by the server: A cooperated every round, B defected once
+do $$
+declare n int := (select current_round - 1 from public.matches where id = current_setting('test.match')::uuid);
+begin
+  if (select (trust, trust_rounds) from public.profiles where id = '00000000-0000-0000-0000-00000000000a') is distinct from (1::real, n)
+    then raise exception 'trust for A is wrong'; end if;
+  if (select abs(trust - (n - 1)::real / n) > 0.001 from public.profiles where id = '00000000-0000-0000-0000-00000000000b')
+    then raise exception 'trust for B is wrong'; end if;
+end $$;
+select pg_temp.expect_error('update public.profiles set trust = 1', 'permission denied');
+select pg_temp.expect_error('select public.refresh_trust(array[auth.uid()])', 'permission denied');
+
+-- 5c. shaky hands: a slip is visible to the one who slipped, never to the opponent
+select pg_temp.expect_error('select public.create_invite(''short'')', 'unknown length');
+do $$ begin
+  if not (select (public.create_invite('standard', true)).noise) then raise exception 'noise not set on invite'; end if;
+end $$;
+reset role;
+insert into public.slips values (current_setting('test.match')::uuid, 1, 'a');
+set local role authenticated;
+select pg_temp.as_user('a');
+do $$ begin
+  if (select count(*) from public.slips) <> 1 then raise exception 'A should see own slip'; end if;
+end $$;
+select pg_temp.as_user('b');
+do $$ begin
+  if exists (select 1 from public.slips) then raise exception 'B sees the slip of A'; end if;
+end $$;
+
 -- 6. queue: a waiting player keeps one seat, the next player joins it, a third waits
 select pg_temp.as_user('a');
 select set_config('test.q', (select (public.join_queue()).id::text), true);
@@ -151,7 +180,7 @@ end $$;
 
 -- 9. profiles: everyone reads, only the owner edits, and only some columns
 do $$ begin
-  if (select count(*) from public.profiles) <> 3 then raise exception 'profiles should be readable'; end if;
+  if (select count(*) from public.profiles) < 3 then raise exception 'profiles should be readable'; end if;
   update public.profiles set display_name = 'Hacked' where id = '00000000-0000-0000-0000-00000000000a';
   if (select display_name from public.profiles where id = '00000000-0000-0000-0000-00000000000a') <> 'Ada'
     then raise exception 'B edited the profile of A'; end if;

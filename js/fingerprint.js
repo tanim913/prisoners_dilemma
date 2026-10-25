@@ -3,18 +3,20 @@
 // player made, given the same history. A character's score is the geometric mean of those chances.
 // Deterministic characters are allowed a 2% slip, so one odd move lowers a score without zeroing it.
 // Rounds where every character would agree, and the player agreed too, say nothing and are skipped.
+// A move that slipped (shaky hands) wasn't the player's choice, so it is skipped too, but stays in the history.
 import { STRATEGIES } from "./strategies.js";
 
 const SLIP = 0.04;
 export const MIN_ROUNDS = 20;
 
-// games: arrays of { me, them } from the player's side, in round order.
+// games: arrays of { me, them, slip? } from the player's side, in round order.
 export function fingerprint(games, strategies = STRATEGIES) {
   const logSum = new Array(strategies.length).fill(0);
   let rounds = 0, played = 0, coop = 0;
 
   for (const game of games) {
     for (let i = 0; i < game.length; i++) {
+      if (game[i].slip) continue;
       const prefix = game.slice(0, i);
       const move = game[i].me;
       played++;

@@ -4,7 +4,7 @@ The game runs on one free Supabase project. Google is the only way to sign in.
 
 ## What lives where
 
-- Schema, rules and match functions: `supabase/migrations/20261025000000_init.sql`.
+- Schema, rules and match functions: `supabase/migrations/20261025000000_init.sql`, then `20261025120000_harder.sql` (shaky hands, reputation, no short matches).
 - Client settings: `config.js` holds the project URL and the publishable key. Both are public by design.
 - Never in the repo: the database password, the `service_role` / secret key, the Google client secret.
 

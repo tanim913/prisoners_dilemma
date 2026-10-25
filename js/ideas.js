@@ -68,7 +68,8 @@ export const IDEAS = [
     body: [
       "In 1980 the political scientist Robert Axelrod invited game theorists to send in computer programs to play the repeated prisoner's dilemma against each other. Fourteen entries came in, and he added one that played at random. The winner was Tit for Tat, sent in by Anatol Rapoport. It was the shortest program in the field.",
       "Axelrod published the results and ran a second tournament. This time 62 entries came in from people who had seen the first results, some of them built to beat Tit for Tat, and games ended at random points so nobody could plan for a final round. Tit for Tat won again.",
-      "From the results Axelrod drew a few lessons. The strategies that did well were nice, meaning never the first to defect. They hit back when defected on, they forgave once the other side came back, and they were simple enough for opponents to read. He wrote it all up in The Evolution of Cooperation in 1984."
+      "From the results Axelrod drew a few lessons. The strategies that did well were nice, meaning never the first to defect. They hit back when defected on, they forgave once the other side came back, and they were simple enough for opponents to read. He wrote it all up in The Evolution of Cooperation in 1984.",
+      "Notice what Tit for Tat never did: beat anyone. It can't score more than the player in front of it, because it never defects first. It won on the total. The gauntlet here works the same way. Five opponents, one sum, and the players who win single matches by striking first tend to finish low."
     ]
   },
   {
@@ -78,7 +79,8 @@ export const IDEAS = [
     body: [
       "Put two Tit for Tat players together and they cooperate forever. Now let one of them make a single mistake. The other copies the defection, the first copies that back, and the two of them trade blows for the rest of the game. A pure mirror has no way to stop an echo.",
       "In 1992 Martin Nowak and Karl Sigmund found that a forgiving version, Generous Tit for Tat, does better when mistakes happen. It sometimes lets a defection go, which ends the echo. In 1993 they showed that Pavlov, which repeats a move that paid and switches after one that didn't, can beat Tit for Tat in a noisy world too.",
-      "Real relationships are noisy. Messages get misread, people have bad days. Some forgiveness is part of what makes cooperation last."
+      "Real relationships are noisy. Messages get misread, people have bad days. Some forgiveness is part of what makes cooperation last.",
+      "Turn on shaky hands and you play in that world. One move in twenty comes out the other way. You're told when your own hand slips, never when theirs did, so every defection against you raises the same question: was that meant?"
     ]
   },
   {
@@ -98,7 +100,8 @@ export const IDEAS = [
     body: [
       "Every round you play is saved with what came before it. To build your profile, the game goes back through those rounds and asks each of the 25 characters a question: given this exact history, how likely were you to make the move this player made?",
       "A character that would always have done what you did scores close to 100%. Fixed-rule characters are allowed a small chance of slipping, so one odd move lowers a score without wiping it out. The number shown is the typical chance per round, worked out as a geometric mean.",
-      "Rounds where all 25 characters would have agreed, and you agreed with them, are skipped, because they tell nothing apart. Below 20 telling rounds the profile says there isn't enough evidence yet. A player who looks like a coin flip will find Random at the top, at 50%, because nothing else predicts them better."
+      "Rounds where all 25 characters would have agreed, and you agreed with them, are skipped, because they tell nothing apart. Below 20 telling rounds the profile says there isn't enough evidence yet. A player who looks like a coin flip will find Random at the top, at 50%, because nothing else predicts them better.",
+      "Moves that slipped under shaky hands are left out. They weren't your choice, so they say nothing about how you play. The history around them still counts, since the characters would have seen the slip and answered it."
     ]
   }
 ];

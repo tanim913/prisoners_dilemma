@@ -12,6 +12,10 @@ Live at [tanim913.github.io/prisoners_dilemma](https://tanim913.github.io/prison
 - **Solo play.** No sign-in needed. At the end you see how every character would have scored against the same opponent, and which one you played like.
 - **Online play.** Invite a friend with a six-letter code or link, or wait in a public queue for a stranger. Chat in the margin while you play.
 - **A hidden end.** You're told a range, like 10 to 16 rounds. The real length stays secret, so there is no last round to defect on.
+- **Judged against the table.** A match ends with Prospered, Got by or Starved, set by points per round. Striking first can win a match and still starve both players.
+- **The gauntlet.** Five random characters in a row, one total, ranked against what all 25 characters would score against the same five.
+- **Shaky hands.** An option where 1 move in 20 comes out the other way. You're told about your own slips, never theirs.
+- **Reputation.** Before an online match you see how often your opponent has cooperated against people. The server counts it, so it can't be edited.
 - **Your emblem.** A profile with your record, your cooperation rate, and how likely each of the 25 characters was to make the moves you made.
 - **The ideas.** Ten short chapters: Hobbes, Rousseau's stag hunt, Kant, Axelrod's tournaments, the shadow of the future, noise and forgiveness, superrationality.
 
@@ -45,6 +49,7 @@ The database test runs inside a transaction that rolls back. Against a local Pos
 ```bash
 psql -d game -f tests/local-stub.sql
 psql -d game -f supabase/migrations/20261025000000_init.sql
+psql -d game -f supabase/migrations/20261025120000_harder.sql
 psql -d game -f tests/rls-test.sql
 ```
 
