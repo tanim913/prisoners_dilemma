@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delete your account · Prisoner's Dilemma</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..600&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="running-head"><a class="running-title" href="./">Prisoner's Dilemma</a></header>
+  <main>
+    <article class="leaf framed prose stack" style="margin:0 auto">
+      <h1>Delete your account</h1>
+      <p class="motto">Leaving the book</p>
+      <p>Deleting your account removes your profile, your games against the characters and your summary, straight away and for good.</p>
+      <p>Online matches you played stay in your opponents' records, with your name removed. Notes you wrote in chat stay in those matches without your name.</p>
+      <div id="slot"><p class="waiting">Checking whether you're signed in</p></div>
+      <p><a href="./">Back to the game</a></p>
+    </article>
+  </main>
+  <script type="module">
+    import * as net from "./js/net.js";
+    const slot = document.getElementById("slot");
+    const show = (html) => (slot.innerHTML = html);
+    (async () => {
+      if (!net.configured()) return show(`<p class="notice">The game server isn't connected, so there is no account to delete.</p>`);
+      const s = await net.session();
+      if (!s) {
+        show(`<p>Sign in with the Google account you want to delete.</p><p><button class="btn btn-lapis" id="in">Continue with Google</button></p>`);
+        document.getElementById("in").onclick = () => net.signIn("");
+        return;
+      }
+      show(`<p>Signed in as <b id="who"></b>.</p><p><button class="btn btn-defect" id="del">Delete my account</button></p><p class="soft" id="msg" role="status"></p>`);
+      document.getElementById("who").textContent = s.user.email;
+      let armed = false;
+      document.getElementById("del").onclick = async (e) => {
+        if (!armed) { armed = true; e.target.textContent = "Press again to delete for good"; return; }
+        e.target.disabled = true;
+        try {
+          await net.deleteAccount();
+          await net.signOut();
+          show(`<p class="notice">Your account has been deleted.</p>`);
+        } catch (err) {
+          e.target.disabled = false;
+          document.getElementById("msg").textContent = "It didn't work: " + err.message;
+        }
+      };
+    })();
+  </script>
+</body>
+</html>
